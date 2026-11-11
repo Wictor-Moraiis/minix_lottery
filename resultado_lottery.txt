@@ -1,0 +1,39 @@
+=== BENCHMARK LOTTERY SCHEDULING ===
+Workers: 2 | Workload: 160 | Tickets: 10 e 30
+
+T+1.666s | Worker 1 | ANDAMENTO | PID=224 | Repeticoes=10 | Tickets=10 | Wins=24 | Context_in=24 | Context_out=24 | Quantum_exp=7 | Cycles_hi=1 | Cycles_lo=763858190
+T+3.350s | Worker 2 | ANDAMENTO | PID=225 | Repeticoes=10 | Tickets=30 | Wins=24 | Context_in=24 | Context_out=24 | Quantum_exp=8 | Cycles_hi=1 | Cycles_lo=785879112
+T+5.033s | Worker 1 | ANDAMENTO | PID=224 | Repeticoes=20 | Tickets=10 | Wins=48 | Context_in=47 | Context_out=47 | Quantum_exp=15 | Cycles_hi=2 | Cycles_lo=1505983300
+T+6.750s | Worker 2 | ANDAMENTO | PID=225 | Repeticoes=20 | Tickets=30 | Wins=48 | Context_in=48 | Context_out=48 | Quantum_exp=16 | Cycles_hi=2 | Cycles_lo=1589880753
+T+8.466s | Worker 1 | ANDAMENTO | PID=224 | Repeticoes=30 | Tickets=10 | Wins=71 | Context_in=69 | Context_out=69 | Quantum_exp=23 | Cycles_hi=3 | Cycles_lo=2381695777
+T+10.350s | Worker 2 | ANDAMENTO | PID=225 | Repeticoes=30 | Tickets=30 | Wins=72 | Context_in=71 | Context_out=71 | Quantum_exp=24 | Cycles_hi=3 | Cycles_lo=2277282985
+T+11.716s | Worker 1 | ANDAMENTO | PID=224 | Repeticoes=40 | Tickets=10 | Wins=98 | Context_in=96 | Context_out=96 | Quantum_exp=31 | Cycles_hi=4 | Cycles_lo=2950643499
+T+13.333s | Worker 2 | ANDAMENTO | PID=225 | Repeticoes=40 | Tickets=30 | Wins=90 | Context_in=89 | Context_out=89 | Quantum_exp=31 | Cycles_hi=4 | Cycles_lo=2826997564
+T+14.933s | Worker 1 | ANDAMENTO | PID=224 | Repeticoes=50 | Tickets=10 | Wins=119 | Context_in=117 | Context_out=117 | Quantum_exp=39 | Cycles_hi=5 | Cycles_lo=3426295214
+T+16.583s | Worker 2 | ANDAMENTO | PID=225 | Repeticoes=50 | Tickets=30 | Wins=119 | Context_in=117 | Context_out=117 | Quantum_exp=39 | Cycles_hi=5 | Cycles_lo=3497650087
+T+18.250s | Worker 1 | ANDAMENTO | PID=224 | Repeticoes=60 | Tickets=10 | Wins=138 | Context_in=134 | Context_out=134 | Quantum_exp=47 | Cycles_hi=6 | Cycles_lo=4139338425
+T+19.950s | Worker 2 | ANDAMENTO | PID=225 | Repeticoes=60 | Tickets=30 | Wins=136 | Context_in=134 | Context_out=134 | Quantum_exp=47 | Cycles_hi=7 | Cycles_lo=77801532
+T+21.516s | Worker 1 | ANDAMENTO | PID=224 | Repeticoes=70 | Tickets=10 | Wins=155 | Context_in=151 | Context_out=151 | Quantum_exp=54 | Cycles_hi=8 | Cycles_lo=200788073
+T+23.066s | Worker 2 | ANDAMENTO | PID=225 | Repeticoes=70 | Tickets=30 | Wins=156 | Context_in=154 | Context_out=154 | Quantum_exp=55 | Cycles_hi=8 | Cycles_lo=476845618
+T+24.583s | Worker 1 | ANDAMENTO | PID=224 | Repeticoes=80 | Tickets=10 | Wins=174 | Context_in=170 | Context_out=170 | Quantum_exp=61 | Cycles_hi=9 | Cycles_lo=490973747
+T+26.116s | Worker 2 | ANDAMENTO | PID=225 | Repeticoes=80 | Tickets=30 | Wins=171 | Context_in=169 | Context_out=169 | Quantum_exp=62 | Cycles_hi=9 | Cycles_lo=785527026
+T+27.633s | Worker 1 | ANDAMENTO | PID=224 | Repeticoes=90 | Tickets=10 | Wins=190 | Context_in=186 | Context_out=186 | Quantum_exp=68 | Cycles_hi=10 | Cycles_lo=704302569
+T+29.483s | Worker 2 | ANDAMENTO | PID=225 | Repeticoes=90 | Tickets=30 | Wins=191 | Context_in=189 | Context_out=189 | Quantum_exp=69 | Cycles_hi=10 | Cycles_lo=1020194726
+T+30.633s | Worker 1 | ANDAMENTO | PID=224 | Repeticoes=100 | Tickets=10 | Wins=206 | Context_in=202 | Context_out=202 | Quantum_exp=75 | Cycles_hi=11 | Cycles_lo=855973954
+T+32.133s | Worker 2 | ANDAMENTO | PID=225 | Repeticoes=100 | Tickets=30 | Wins=209 | Context_in=207 | Context_out=207 | Quantum_exp=76 | Cycles_hi=11 | Cycles_lo=1293901348
+T+33.616s | Worker 1 | ANDAMENTO | PID=224 | Repeticoes=110 | Tickets=10 | Wins=223 | Context_in=219 | Context_out=219 | Quantum_exp=82 | Cycles_hi=12 | Cycles_lo=972392056
+T+35.066s | Worker 2 | ANDAMENTO | PID=225 | Repeticoes=110 | Tickets=30 | Wins=226 | Context_in=223 | Context_out=223 | Quantum_exp=83 | Cycles_hi=12 | Cycles_lo=1338010492
+T+36.500s | Worker 1 | ANDAMENTO | PID=224 | Repeticoes=120 | Tickets=10 | Wins=238 | Context_in=234 | Context_out=234 | Quantum_exp=89 | Cycles_hi=13 | Cycles_lo=1015846713
+T+38.083s | Worker 2 | ANDAMENTO | PID=225 | Repeticoes=120 | Tickets=30 | Wins=242 | Context_in=238 | Context_out=238 | Quantum_exp=90 | Cycles_hi=13 | Cycles_lo=1355747316
+T+39.366s | Worker 1 | ANDAMENTO | PID=224 | Repeticoes=130 | Tickets=10 | Wins=258 | Context_in=254 | Context_out=254 | Quantum_exp=96 | Cycles_hi=14 | Cycles_lo=974414347
+T+40.816s | Worker 2 | ANDAMENTO | PID=225 | Repeticoes=130 | Tickets=30 | Wins=259 | Context_in=254 | Context_out=254 | Quantum_exp=97 | Cycles_hi=14 | Cycles_lo=1308458706
+T+42.166s | Worker 1 | ANDAMENTO | PID=224 | Repeticoes=140 | Tickets=10 | Wins=275 | Context_in=271 | Context_out=271 | Quantum_exp=102 | Cycles_hi=15 | Cycles_lo=851607162
+T+43.583s | Worker 2 | ANDAMENTO | PID=225 | Repeticoes=140 | Tickets=30 | Wins=277 | Context_in=272 | Context_out=272 | Quantum_exp=103 | Cycles_hi=15 | Cycles_lo=1265669075
+T+44.950s | Worker 1 | ANDAMENTO | PID=224 | Repeticoes=150 | Tickets=10 | Wins=292 | Context_in=287 | Context_out=287 | Quantum_exp=109 | Cycles_hi=16 | Cycles_lo=694745072
+T+46.350s | Worker 2 | ANDAMENTO | PID=225 | Repeticoes=150 | Tickets=30 | Wins=292 | Context_in=287 | Context_out=287 | Quantum_exp=110 | Cycles_hi=16 | Cycles_lo=1153880384
+T+47.716s | Worker 1 | ANDAMENTO | PID=224 | Repeticoes=160 | Tickets=10 | Wins=308 | Context_in=303 | Context_out=303 | Quantum_exp=115 | Cycles_hi=17 | Cycles_lo=456848128
+T+49.066s | Worker 2 | ANDAMENTO | PID=225 | Repeticoes=160 | Tickets=30 | Wins=310 | Context_in=305 | Context_out=305 | Quantum_exp=116 | Cycles_hi=17 | Cycles_lo=965367887
+T+49.066s | Worker 1 | FINAL | PID=224 | Repeticoes=160 | Tickets=10 | Wins=312 | Context_in=307 | Context_out=307 | Quantum_exp=115 | Cycles_hi=17 | Cycles_lo=456878131
+T+49.066s | Worker 2 | FINAL | PID=225 | Repeticoes=160 | Tickets=30 | Wins=310 | Context_in=305 | Context_out=305 | Quantum_exp=116 | Cycles_hi=17 | Cycles_lo=965367887
+
+=== BENCHMARK CONCLUIDO ===

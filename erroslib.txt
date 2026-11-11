@@ -1,0 +1,9 @@
+    compile  libsys/alloc_util.o
+alloc_util.c:54:68: error: use of undeclared identifier 'OK'
+        if(phys != NULL && sys_umap(SELF, VM_D, buf, len, phys) != OK)
+                                                                   ^
+1 error generated.
+*** Error code 1
+
+Stop.
+make: stopped in /usr/src/lib/libsys

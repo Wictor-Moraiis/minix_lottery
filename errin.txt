@@ -1,0 +1,366 @@
+echo '   ' "compile " libsys/get_randomness.o
+clang -O -std=gnu99   -march=i586    -I/usr/src/lib/libsys/arch/i386/../../ -DUSE_LIVEUPDATE -DUSE_SYSDEBUG -D_MINIX -D_NETBSD_SOURCE -fno-builtin -Wall -Wno-sign-compare  -c    /usr/src/lib/libsys/arch/i386/get_randomness.c -o get_randomness.o
+objcopy -x get_randomness.o
+echo '   ' "compile " libsys/getidle.o
+clang -O -std=gnu99   -march=i586    -I/usr/src/lib/libsys/arch/i386/../../ -DUSE_LIVEUPDATE -DUSE_SYSDEBUG -D_MINIX -D_NETBSD_SOURCE -fno-builtin -Wall -Wno-sign-compare  -c    /usr/src/lib/libsys/arch/i386/getidle.c -o getidle.o
+objcopy -x getidle.o
+echo '   ' "compile " libsys/profile.o
+clang -O -std=gnu99   -march=i586    -I/usr/src/lib/libsys/arch/i386/../../ -DUSE_LIVEUPDATE -DUSE_SYSDEBUG -D_MINIX -D_NETBSD_SOURCE -fno-builtin -Wall -Wno-sign-compare  -c    /usr/src/lib/libsys/arch/i386/profile.c -o profile.o
+objcopy -x profile.o
+echo '   ' "compile " libsys/profile_extern.o
+clang -O -std=gnu99   -march=i586    -I/usr/src/lib/libsys/arch/i386/../../ -DUSE_LIVEUPDATE -DUSE_SYSDEBUG -D_MINIX -D_NETBSD_SOURCE -fno-builtin -Wall -Wno-sign-compare  -c    /usr/src/lib/libsys/arch/i386/profile_extern.c -o profile_extern.o
+objcopy -x profile_extern.o
+echo '   ' "compile " libsys/ser_putc.o
+clang -O -std=gnu99   -march=i586    -I/usr/src/lib/libsys/arch/i386/../../ -DUSE_LIVEUPDATE -DUSE_SYSDEBUG -D_MINIX -D_NETBSD_SOURCE -fno-builtin -Wall -Wno-sign-compare  -c    /usr/src/lib/libsys/arch/i386/ser_putc.c -o ser_putc.o
+objcopy -x ser_putc.o
+echo '   ' "compile " libsys/spin.o
+clang -O -std=gnu99   -march=i586    -I/usr/src/lib/libsys/arch/i386/../../ -DUSE_LIVEUPDATE -DUSE_SYSDEBUG -D_MINIX -D_NETBSD_SOURCE -fno-builtin -Wall -Wno-sign-compare  -c    /usr/src/lib/libsys/arch/i386/spin.c -o spin.o
+objcopy -x spin.o
+echo '   ' "compile " libsys/sys_eniop.o
+clang -O -std=gnu99   -march=i586    -I/usr/src/lib/libsys/arch/i386/../../ -DUSE_LIVEUPDATE -DUSE_SYSDEBUG -D_MINIX -D_NETBSD_SOURCE -fno-builtin -Wall -Wno-sign-compare  -c    /usr/src/lib/libsys/arch/i386/sys_eniop.c -o sys_eniop.o
+objcopy -x sys_eniop.o
+echo '   ' "compile " libsys/sys_in.o
+clang -O -std=gnu99   -march=i586    -I/usr/src/lib/libsys/arch/i386/../../ -DUSE_LIVEUPDATE -DUSE_SYSDEBUG -D_MINIX -D_NETBSD_SOURCE -fno-builtin -Wall -Wno-sign-compare  -c    /usr/src/lib/libsys/arch/i386/sys_in.c -o sys_in.o
+objcopy -x sys_in.o
+echo '   ' "compile " libsys/sys_int86.o
+clang -O -std=gnu99   -march=i586    -I/usr/src/lib/libsys/arch/i386/../../ -DUSE_LIVEUPDATE -DUSE_SYSDEBUG -D_MINIX -D_NETBSD_SOURCE -fno-builtin -Wall -Wno-sign-compare  -c    /usr/src/lib/libsys/arch/i386/sys_int86.c -o sys_int86.o
+objcopy -x sys_int86.o
+echo '   ' "compile " libsys/sys_out.o
+clang -O -std=gnu99   -march=i586    -I/usr/src/lib/libsys/arch/i386/../../ -DUSE_LIVEUPDATE -DUSE_SYSDEBUG -D_MINIX -D_NETBSD_SOURCE -fno-builtin -Wall -Wno-sign-compare  -c    /usr/src/lib/libsys/arch/i386/sys_out.c -o sys_out.o
+objcopy -x sys_out.o
+echo '   ' "compile " libsys/sys_readbios.o
+clang -O -std=gnu99   -march=i586    -I/usr/src/lib/libsys/arch/i386/../../ -DUSE_LIVEUPDATE -DUSE_SYSDEBUG -D_MINIX -D_NETBSD_SOURCE -fno-builtin -Wall -Wno-sign-compare  -c    /usr/src/lib/libsys/arch/i386/sys_readbios.c -o sys_readbios.o
+objcopy -x sys_readbios.o
+echo '   ' "compile " libsys/sys_sdevio.o
+clang -O -std=gnu99   -march=i586    -I/usr/src/lib/libsys/arch/i386/../../ -DUSE_LIVEUPDATE -DUSE_SYSDEBUG -D_MINIX -D_NETBSD_SOURCE -fno-builtin -Wall -Wno-sign-compare  -c    /usr/src/lib/libsys/arch/i386/sys_sdevio.c -o sys_sdevio.o
+objcopy -x sys_sdevio.o
+echo '   ' "compile " libsys/sys_umap_remote.o
+clang -O -std=gnu99   -march=i586    -I/usr/src/lib/libsys/arch/i386/../../ -DUSE_LIVEUPDATE -DUSE_SYSDEBUG -D_MINIX -D_NETBSD_SOURCE -fno-builtin -Wall -Wno-sign-compare  -c    /usr/src/lib/libsys/arch/i386/sys_umap_remote.c -o sys_umap_remote.o
+objcopy -x sys_umap_remote.o
+echo '   ' "compile " libsys/sys_vinb.o
+clang -O -std=gnu99   -march=i586    -I/usr/src/lib/libsys/arch/i386/../../ -DUSE_LIVEUPDATE -DUSE_SYSDEBUG -D_MINIX -D_NETBSD_SOURCE -fno-builtin -Wall -Wno-sign-compare  -c    /usr/src/lib/libsys/arch/i386/sys_vinb.c -o sys_vinb.o
+objcopy -x sys_vinb.o
+echo '   ' "compile " libsys/sys_vinl.o
+clang -O -std=gnu99   -march=i586    -I/usr/src/lib/libsys/arch/i386/../../ -DUSE_LIVEUPDATE -DUSE_SYSDEBUG -D_MINIX -D_NETBSD_SOURCE -fno-builtin -Wall -Wno-sign-compare  -c    /usr/src/lib/libsys/arch/i386/sys_vinl.c -o sys_vinl.o
+objcopy -x sys_vinl.o
+echo '   ' "compile " libsys/sys_vinw.o
+clang -O -std=gnu99   -march=i586    -I/usr/src/lib/libsys/arch/i386/../../ -DUSE_LIVEUPDATE -DUSE_SYSDEBUG -D_MINIX -D_NETBSD_SOURCE -fno-builtin -Wall -Wno-sign-compare  -c    /usr/src/lib/libsys/arch/i386/sys_vinw.c -o sys_vinw.o
+objcopy -x sys_vinw.o
+echo '   ' "compile " libsys/sys_voutb.o
+clang -O -std=gnu99   -march=i586    -I/usr/src/lib/libsys/arch/i386/../../ -DUSE_LIVEUPDATE -DUSE_SYSDEBUG -D_MINIX -D_NETBSD_SOURCE -fno-builtin -Wall -Wno-sign-compare  -c    /usr/src/lib/libsys/arch/i386/sys_voutb.c -o sys_voutb.o
+objcopy -x sys_voutb.o
+echo '   ' "compile " libsys/sys_voutl.o
+clang -O -std=gnu99   -march=i586    -I/usr/src/lib/libsys/arch/i386/../../ -DUSE_LIVEUPDATE -DUSE_SYSDEBUG -D_MINIX -D_NETBSD_SOURCE -fno-builtin -Wall -Wno-sign-compare  -c    /usr/src/lib/libsys/arch/i386/sys_voutl.c -o sys_voutl.o
+objcopy -x sys_voutl.o
+echo '   ' "compile " libsys/sys_voutw.o
+clang -O -std=gnu99   -march=i586    -I/usr/src/lib/libsys/arch/i386/../../ -DUSE_LIVEUPDATE -DUSE_SYSDEBUG -D_MINIX -D_NETBSD_SOURCE -fno-builtin -Wall -Wno-sign-compare  -c    /usr/src/lib/libsys/arch/i386/sys_voutw.c -o sys_voutw.o
+objcopy -x sys_voutw.o
+echo '   ' "compile " libsys/timing.o
+clang -O -std=gnu99   -march=i586    -I/usr/src/lib/libsys/arch/i386/../../ -DUSE_LIVEUPDATE -DUSE_SYSDEBUG -D_MINIX -D_NETBSD_SOURCE -fno-builtin -Wall -Wno-sign-compare  -c    /usr/src/lib/libsys/arch/i386/timing.c -o timing.o
+objcopy -x timing.o
+echo '   ' "compile " libsys/tsc_util.o
+clang -O -std=gnu99   -march=i586    -I/usr/src/lib/libsys/arch/i386/../../ -DUSE_LIVEUPDATE -DUSE_SYSDEBUG -D_MINIX -D_NETBSD_SOURCE -fno-builtin -Wall -Wno-sign-compare  -c    /usr/src/lib/libsys/arch/i386/tsc_util.c -o tsc_util.o
+objcopy -x tsc_util.o
+echo '   ' "compile " libsys/vbox.o
+clang -O -std=gnu99   -march=i586    -I/usr/src/lib/libsys/arch/i386/../../ -DUSE_LIVEUPDATE -DUSE_SYSDEBUG -D_MINIX -D_NETBSD_SOURCE -fno-builtin -Wall -Wno-sign-compare  -c    /usr/src/lib/libsys/arch/i386/vbox.c -o vbox.o
+objcopy -x vbox.o
+echo '   ' "compile " libsys/alloc_util.o
+clang -O -std=gnu99   -march=i586    -I/usr/src/lib/libsys/arch/i386/../../ -DUSE_LIVEUPDATE -DUSE_SYSDEBUG -D_MINIX -D_NETBSD_SOURCE -fno-builtin -Wall -Wno-sign-compare  -c    alloc_util.c -o alloc_util.o
+objcopy -x alloc_util.o
+echo '   ' "compile " libsys/assert.o
+clang -O -std=gnu99   -march=i586    -I/usr/src/lib/libsys/arch/i386/../../ -DUSE_LIVEUPDATE -DUSE_SYSDEBUG -D_MINIX -D_NETBSD_SOURCE -fno-builtin -Wall -Wno-sign-compare  -c    assert.c -o assert.o
+objcopy -x assert.o
+echo '   ' "compile " libsys/asynsend.o
+clang -O -std=gnu99   -march=i586    -I/usr/src/lib/libsys/arch/i386/../../ -DUSE_LIVEUPDATE -DUSE_SYSDEBUG -D_MINIX -D_NETBSD_SOURCE -fno-builtin -Wall -Wno-sign-compare  -c    asynsend.c -o asynsend.o
+objcopy -x asynsend.o
+echo '   ' "compile " libsys/ds.o
+clang -O -std=gnu99   -march=i586    -I/usr/src/lib/libsys/arch/i386/../../ -DUSE_LIVEUPDATE -DUSE_SYSDEBUG -D_MINIX -D_NETBSD_SOURCE -fno-builtin -Wall -Wno-sign-compare  -c    ds.c -o ds.o
+objcopy -x ds.o
+echo '   ' "compile " libsys/env_get_prm.o
+clang -O -std=gnu99   -march=i586    -I/usr/src/lib/libsys/arch/i386/../../ -DUSE_LIVEUPDATE -DUSE_SYSDEBUG -D_MINIX -D_NETBSD_SOURCE -fno-builtin -Wall -Wno-sign-compare  -c    env_get_prm.c -o env_get_prm.o
+objcopy -x env_get_prm.o
+echo '   ' "compile " libsys/env_panic.o
+clang -O -std=gnu99   -march=i586    -I/usr/src/lib/libsys/arch/i386/../../ -DUSE_LIVEUPDATE -DUSE_SYSDEBUG -D_MINIX -D_NETBSD_SOURCE -fno-builtin -Wall -Wno-sign-compare  -c    env_panic.c -o env_panic.o
+objcopy -x env_panic.o
+echo '   ' "compile " libsys/env_parse.o
+clang -O -std=gnu99   -march=i586    -I/usr/src/lib/libsys/arch/i386/../../ -DUSE_LIVEUPDATE -DUSE_SYSDEBUG -D_MINIX -D_NETBSD_SOURCE -fno-builtin -Wall -Wno-sign-compare  -c    env_parse.c -o env_parse.o
+objcopy -x env_parse.o
+echo '   ' "compile " libsys/env_prefix.o
+clang -O -std=gnu99   -march=i586    -I/usr/src/lib/libsys/arch/i386/../../ -DUSE_LIVEUPDATE -DUSE_SYSDEBUG -D_MINIX -D_NETBSD_SOURCE -fno-builtin -Wall -Wno-sign-compare  -c    env_prefix.c -o env_prefix.o
+objcopy -x env_prefix.o
+echo '   ' "compile " libsys/fkey_ctl.o
+clang -O -std=gnu99   -march=i586    -I/usr/src/lib/libsys/arch/i386/../../ -DUSE_LIVEUPDATE -DUSE_SYSDEBUG -D_MINIX -D_NETBSD_SOURCE -fno-builtin -Wall -Wno-sign-compare  -c    fkey_ctl.c -o fkey_ctl.o
+objcopy -x fkey_ctl.o
+echo '   ' "compile " libsys/getsysinfo.o
+clang -O -std=gnu99   -march=i586    -I/usr/src/lib/libsys/arch/i386/../../ -DUSE_LIVEUPDATE -DUSE_SYSDEBUG -D_MINIX -D_NETBSD_SOURCE -fno-builtin -Wall -Wno-sign-compare  -c    getsysinfo.c -o getsysinfo.o
+objcopy -x getsysinfo.o
+echo '   ' "compile " libsys/getuptime.o
+clang -O -std=gnu99   -march=i586    -I/usr/src/lib/libsys/arch/i386/../../ -DUSE_LIVEUPDATE -DUSE_SYSDEBUG -D_MINIX -D_NETBSD_SOURCE -fno-builtin -Wall -Wno-sign-compare  -c    getuptime.c -o getuptime.o
+objcopy -x getuptime.o
+echo '   ' "compile " libsys/getuptime2.o
+clang -O -std=gnu99   -march=i586    -I/usr/src/lib/libsys/arch/i386/../../ -DUSE_LIVEUPDATE -DUSE_SYSDEBUG -D_MINIX -D_NETBSD_SOURCE -fno-builtin -Wall -Wno-sign-compare  -c    getuptime2.c -o getuptime2.o
+objcopy -x getuptime2.o
+echo '   ' "compile " libsys/input.o
+clang -O -std=gnu99   -march=i586    -I/usr/src/lib/libsys/arch/i386/../../ -DUSE_LIVEUPDATE -DUSE_SYSDEBUG -D_MINIX -D_NETBSD_SOURCE -fno-builtin -Wall -Wno-sign-compare  -c    input.c -o input.o
+objcopy -x input.o
+echo '   ' "compile " libsys/kernel_call.o
+clang -O -std=gnu99   -march=i586    -I/usr/src/lib/libsys/arch/i386/../../ -DUSE_LIVEUPDATE -DUSE_SYSDEBUG -D_MINIX -D_NETBSD_SOURCE -fno-builtin -Wall -Wno-sign-compare  -c    kernel_call.c -o kernel_call.o
+objcopy -x kernel_call.o
+echo '   ' "compile " libsys/kprintf.o
+clang -O -std=gnu99   -march=i586    -I/usr/src/lib/libsys/arch/i386/../../ -DUSE_LIVEUPDATE -DUSE_SYSDEBUG -D_MINIX -D_NETBSD_SOURCE -fno-builtin -Wall -Wno-sign-compare  -c    kprintf.c -o kprintf.o
+objcopy -x kprintf.o
+echo '   ' "compile " libsys/kputc.o
+clang -O -std=gnu99   -march=i586    -I/usr/src/lib/libsys/arch/i386/../../ -DUSE_LIVEUPDATE -DUSE_SYSDEBUG -D_MINIX -D_NETBSD_SOURCE -fno-builtin -Wall -Wno-sign-compare  -c    kputc.c -o kputc.o
+objcopy -x kputc.o
+echo '   ' "compile " libsys/kputs.o
+clang -O -std=gnu99   -march=i586    -I/usr/src/lib/libsys/arch/i386/../../ -DUSE_LIVEUPDATE -DUSE_SYSDEBUG -D_MINIX -D_NETBSD_SOURCE -fno-builtin -Wall -Wno-sign-compare  -c    kputs.c -o kputs.o
+objcopy -x kputs.o
+echo '   ' "compile " libsys/optset.o
+clang -O -std=gnu99   -march=i586    -I/usr/src/lib/libsys/arch/i386/../../ -DUSE_LIVEUPDATE -DUSE_SYSDEBUG -D_MINIX -D_NETBSD_SOURCE -fno-builtin -Wall -Wno-sign-compare  -c    optset.c -o optset.o
+objcopy -x optset.o
+echo '   ' "compile " libsys/panic.o
+clang -O -std=gnu99   -march=i586    -I/usr/src/lib/libsys/arch/i386/../../ -DUSE_LIVEUPDATE -DUSE_SYSDEBUG -D_MINIX -D_NETBSD_SOURCE -fno-builtin -Wall -Wno-sign-compare  -c    panic.c -o panic.o
+objcopy -x panic.o
+echo '   ' "compile " libsys/safecopies.o
+clang -O -std=gnu99   -march=i586    -I/usr/src/lib/libsys/arch/i386/../../ -DUSE_LIVEUPDATE -DUSE_SYSDEBUG -D_MINIX -D_NETBSD_SOURCE -fno-builtin -Wall -Wno-sign-compare  -c    safecopies.c -o safecopies.o
+objcopy -x safecopies.o
+echo '   ' "compile " libsys/sched_start.o
+clang -O -std=gnu99   -march=i586    -I/usr/src/lib/libsys/arch/i386/../../ -DUSE_LIVEUPDATE -DUSE_SYSDEBUG -D_MINIX -D_NETBSD_SOURCE -fno-builtin -Wall -Wno-sign-compare  -c   -I/usr/src sched_start.c -o sched_start.o
+objcopy -x sched_start.o
+echo '   ' "compile " libsys/sched_stop.o
+clang -O -std=gnu99   -march=i586    -I/usr/src/lib/libsys/arch/i386/../../ -DUSE_LIVEUPDATE -DUSE_SYSDEBUG -D_MINIX -D_NETBSD_SOURCE -fno-builtin -Wall -Wno-sign-compare  -c    sched_stop.c -o sched_stop.o
+objcopy -x sched_stop.o
+echo '   ' "compile " libsys/sef.o
+clang -O -std=gnu99   -march=i586    -I/usr/src/lib/libsys/arch/i386/../../ -DUSE_LIVEUPDATE -DUSE_SYSDEBUG -D_MINIX -D_NETBSD_SOURCE -fno-builtin -Wall -Wno-sign-compare  -c    sef.c -o sef.o
+objcopy -x sef.o
+echo '   ' "compile " libsys/sef_init.o
+clang -O -std=gnu99   -march=i586    -I/usr/src/lib/libsys/arch/i386/../../ -DUSE_LIVEUPDATE -DUSE_SYSDEBUG -D_MINIX -D_NETBSD_SOURCE -fno-builtin -Wall -Wno-sign-compare  -c    sef_init.c -o sef_init.o
+objcopy -x sef_init.o
+echo '   ' "compile " libsys/sef_liveupdate.o
+clang -O -std=gnu99   -march=i586    -I/usr/src/lib/libsys/arch/i386/../../ -DUSE_LIVEUPDATE -DUSE_SYSDEBUG -D_MINIX -D_NETBSD_SOURCE -fno-builtin -Wall -Wno-sign-compare  -c    sef_liveupdate.c -o sef_liveupdate.o
+objcopy -x sef_liveupdate.o
+echo '   ' "compile " libsys/sef_ping.o
+clang -O -std=gnu99   -march=i586    -I/usr/src/lib/libsys/arch/i386/../../ -DUSE_LIVEUPDATE -DUSE_SYSDEBUG -D_MINIX -D_NETBSD_SOURCE -fno-builtin -Wall -Wno-sign-compare  -c    sef_ping.c -o sef_ping.o
+objcopy -x sef_ping.o
+echo '   ' "compile " libsys/sef_signal.o
+clang -O -std=gnu99   -march=i586    -I/usr/src/lib/libsys/arch/i386/../../ -DUSE_LIVEUPDATE -DUSE_SYSDEBUG -D_MINIX -D_NETBSD_SOURCE -fno-builtin -Wall -Wno-sign-compare  -c    sef_signal.c -o sef_signal.o
+objcopy -x sef_signal.o
+echo '   ' "compile " libsys/sqrt_approx.o
+clang -O -std=gnu99   -march=i586    -I/usr/src/lib/libsys/arch/i386/../../ -DUSE_LIVEUPDATE -DUSE_SYSDEBUG -D_MINIX -D_NETBSD_SOURCE -fno-builtin -Wall -Wno-sign-compare  -c    sqrt_approx.c -o sqrt_approx.o
+objcopy -x sqrt_approx.o
+echo '   ' "compile " libsys/stacktrace.o
+clang -O -std=gnu99   -march=i586    -I/usr/src/lib/libsys/arch/i386/../../ -DUSE_LIVEUPDATE -DUSE_SYSDEBUG -D_MINIX -D_NETBSD_SOURCE -fno-builtin -Wall -Wno-sign-compare  -c    stacktrace.c -o stacktrace.o
+objcopy -x stacktrace.o
+echo '   ' "compile " libsys/sys_abort.o
+clang -O -std=gnu99   -march=i586    -I/usr/src/lib/libsys/arch/i386/../../ -DUSE_LIVEUPDATE -DUSE_SYSDEBUG -D_MINIX -D_NETBSD_SOURCE -fno-builtin -Wall -Wno-sign-compare  -c    sys_abort.c -o sys_abort.o
+objcopy -x sys_abort.o
+echo '   ' "compile " libsys/sys_clear.o
+clang -O -std=gnu99   -march=i586    -I/usr/src/lib/libsys/arch/i386/../../ -DUSE_LIVEUPDATE -DUSE_SYSDEBUG -D_MINIX -D_NETBSD_SOURCE -fno-builtin -Wall -Wno-sign-compare  -c    sys_clear.c -o sys_clear.o
+objcopy -x sys_clear.o
+echo '   ' "compile " libsys/sys_cprof.o
+clang -O -std=gnu99   -march=i586    -I/usr/src/lib/libsys/arch/i386/../../ -DUSE_LIVEUPDATE -DUSE_SYSDEBUG -D_MINIX -D_NETBSD_SOURCE -fno-builtin -Wall -Wno-sign-compare  -c    sys_cprof.c -o sys_cprof.o
+objcopy -x sys_cprof.o
+echo '   ' "compile " libsys/sys_endsig.o
+clang -O -std=gnu99   -march=i586    -I/usr/src/lib/libsys/arch/i386/../../ -DUSE_LIVEUPDATE -DUSE_SYSDEBUG -D_MINIX -D_NETBSD_SOURCE -fno-builtin -Wall -Wno-sign-compare  -c    sys_endsig.c -o sys_endsig.o
+objcopy -x sys_endsig.o
+echo '   ' "compile " libsys/sys_exec.o
+clang -O -std=gnu99   -march=i586    -I/usr/src/lib/libsys/arch/i386/../../ -DUSE_LIVEUPDATE -DUSE_SYSDEBUG -D_MINIX -D_NETBSD_SOURCE -fno-builtin -Wall -Wno-sign-compare  -c    sys_exec.c -o sys_exec.o
+objcopy -x sys_exec.o
+echo '   ' "compile " libsys/sys_exit.o
+clang -O -std=gnu99   -march=i586    -I/usr/src/lib/libsys/arch/i386/../../ -DUSE_LIVEUPDATE -DUSE_SYSDEBUG -D_MINIX -D_NETBSD_SOURCE -fno-builtin -Wall -Wno-sign-compare  -c    sys_exit.c -o sys_exit.o
+objcopy -x sys_exit.o
+echo '   ' "compile " libsys/sys_fork.o
+clang -O -std=gnu99   -march=i586    -I/usr/src/lib/libsys/arch/i386/../../ -DUSE_LIVEUPDATE -DUSE_SYSDEBUG -D_MINIX -D_NETBSD_SOURCE -fno-builtin -Wall -Wno-sign-compare  -c    sys_fork.c -o sys_fork.o
+objcopy -x sys_fork.o
+echo '   ' "compile " libsys/sys_getinfo.o
+clang -O -std=gnu99   -march=i586    -I/usr/src/lib/libsys/arch/i386/../../ -DUSE_LIVEUPDATE -DUSE_SYSDEBUG -D_MINIX -D_NETBSD_SOURCE -fno-builtin -Wall -Wno-sign-compare  -c    sys_getinfo.c -o sys_getinfo.o
+objcopy -x sys_getinfo.o
+echo '   ' "compile " libsys/sys_getsig.o
+clang -O -std=gnu99   -march=i586    -I/usr/src/lib/libsys/arch/i386/../../ -DUSE_LIVEUPDATE -DUSE_SYSDEBUG -D_MINIX -D_NETBSD_SOURCE -fno-builtin -Wall -Wno-sign-compare  -c    sys_getsig.c -o sys_getsig.o
+objcopy -x sys_getsig.o
+echo '   ' "compile " libsys/sys_hz.o
+clang -O -std=gnu99   -march=i586    -I/usr/src/lib/libsys/arch/i386/../../ -DUSE_LIVEUPDATE -DUSE_SYSDEBUG -D_MINIX -D_NETBSD_SOURCE -fno-builtin -Wall -Wno-sign-compare  -c    sys_hz.c -o sys_hz.o
+objcopy -x sys_hz.o
+echo '   ' "compile " libsys/sys_irqctl.o
+clang -O -std=gnu99   -march=i586    -I/usr/src/lib/libsys/arch/i386/../../ -DUSE_LIVEUPDATE -DUSE_SYSDEBUG -D_MINIX -D_NETBSD_SOURCE -fno-builtin -Wall -Wno-sign-compare  -c    sys_irqctl.c -o sys_irqctl.o
+objcopy -x sys_irqctl.o
+echo '   ' "compile " libsys/sys_kill.o
+clang -O -std=gnu99   -march=i586    -I/usr/src/lib/libsys/arch/i386/../../ -DUSE_LIVEUPDATE -DUSE_SYSDEBUG -D_MINIX -D_NETBSD_SOURCE -fno-builtin -Wall -Wno-sign-compare  -c    sys_kill.c -o sys_kill.o
+objcopy -x sys_kill.o
+echo '   ' "compile " libsys/sys_mcontext.o
+clang -O -std=gnu99   -march=i586    -I/usr/src/lib/libsys/arch/i386/../../ -DUSE_LIVEUPDATE -DUSE_SYSDEBUG -D_MINIX -D_NETBSD_SOURCE -fno-builtin -Wall -Wno-sign-compare  -c    sys_mcontext.c -o sys_mcontext.o
+objcopy -x sys_mcontext.o
+echo '   ' "compile " libsys/sys_memset.o
+clang -O -std=gnu99   -march=i586    -I/usr/src/lib/libsys/arch/i386/../../ -DUSE_LIVEUPDATE -DUSE_SYSDEBUG -D_MINIX -D_NETBSD_SOURCE -fno-builtin -Wall -Wno-sign-compare  -c    sys_memset.c -o sys_memset.o
+objcopy -x sys_memset.o
+echo '   ' "compile " libsys/sys_physcopy.o
+clang -O -std=gnu99   -march=i586    -I/usr/src/lib/libsys/arch/i386/../../ -DUSE_LIVEUPDATE -DUSE_SYSDEBUG -D_MINIX -D_NETBSD_SOURCE -fno-builtin -Wall -Wno-sign-compare  -c    sys_physcopy.c -o sys_physcopy.o
+objcopy -x sys_physcopy.o
+echo '   ' "compile " libsys/sys_privctl.o
+clang -O -std=gnu99   -march=i586    -I/usr/src/lib/libsys/arch/i386/../../ -DUSE_LIVEUPDATE -DUSE_SYSDEBUG -D_MINIX -D_NETBSD_SOURCE -fno-builtin -Wall -Wno-sign-compare  -c    sys_privctl.c -o sys_privctl.o
+objcopy -x sys_privctl.o
+echo '   ' "compile " libsys/sys_profbuf.o
+clang -O -std=gnu99   -march=i586    -I/usr/src/lib/libsys/arch/i386/../../ -DUSE_LIVEUPDATE -DUSE_SYSDEBUG -D_MINIX -D_NETBSD_SOURCE -fno-builtin -Wall -Wno-sign-compare  -c    sys_profbuf.c -o sys_profbuf.o
+objcopy -x sys_profbuf.o
+echo '   ' "compile " libsys/sys_runctl.o
+clang -O -std=gnu99   -march=i586    -I/usr/src/lib/libsys/arch/i386/../../ -DUSE_LIVEUPDATE -DUSE_SYSDEBUG -D_MINIX -D_NETBSD_SOURCE -fno-builtin -Wall -Wno-sign-compare  -c    sys_runctl.c -o sys_runctl.o
+objcopy -x sys_runctl.o
+echo '   ' "compile " libsys/sys_safecopy.o
+clang -O -std=gnu99   -march=i586    -I/usr/src/lib/libsys/arch/i386/../../ -DUSE_LIVEUPDATE -DUSE_SYSDEBUG -D_MINIX -D_NETBSD_SOURCE -fno-builtin -Wall -Wno-sign-compare  -c    sys_safecopy.c -o sys_safecopy.o
+objcopy -x sys_safecopy.o
+echo '   ' "compile " libsys/sys_safememset.o
+clang -O -std=gnu99   -march=i586    -I/usr/src/lib/libsys/arch/i386/../../ -DUSE_LIVEUPDATE -DUSE_SYSDEBUG -D_MINIX -D_NETBSD_SOURCE -fno-builtin -Wall -Wno-sign-compare  -c    sys_safememset.c -o sys_safememset.o
+objcopy -x sys_safememset.o
+echo '   ' "compile " libsys/sys_schedctl.o
+clang -O -std=gnu99   -march=i586    -I/usr/src/lib/libsys/arch/i386/../../ -DUSE_LIVEUPDATE -DUSE_SYSDEBUG -D_MINIX -D_NETBSD_SOURCE -fno-builtin -Wall -Wno-sign-compare  -c    sys_schedctl.c -o sys_schedctl.o
+objcopy -x sys_schedctl.o
+echo '   ' "compile " libsys/sys_schedule.o
+clang -O -std=gnu99   -march=i586    -I/usr/src/lib/libsys/arch/i386/../../ -DUSE_LIVEUPDATE -DUSE_SYSDEBUG -D_MINIX -D_NETBSD_SOURCE -fno-builtin -Wall -Wno-sign-compare  -c    sys_schedule.c -o sys_schedule.o
+objcopy -x sys_schedule.o
+echo '   ' "compile " libsys/sys_setalarm.o
+clang -O -std=gnu99   -march=i586    -I/usr/src/lib/libsys/arch/i386/../../ -DUSE_LIVEUPDATE -DUSE_SYSDEBUG -D_MINIX -D_NETBSD_SOURCE -fno-builtin -Wall -Wno-sign-compare  -c    sys_setalarm.c -o sys_setalarm.o
+objcopy -x sys_setalarm.o
+echo '   ' "compile " libsys/sys_setgrant.o
+clang -O -std=gnu99   -march=i586    -I/usr/src/lib/libsys/arch/i386/../../ -DUSE_LIVEUPDATE -DUSE_SYSDEBUG -D_MINIX -D_NETBSD_SOURCE -fno-builtin -Wall -Wno-sign-compare  -c    sys_setgrant.c -o sys_setgrant.o
+objcopy -x sys_setgrant.o
+echo '   ' "compile " libsys/sys_sigreturn.o
+clang -O -std=gnu99   -march=i586    -I/usr/src/lib/libsys/arch/i386/../../ -DUSE_LIVEUPDATE -DUSE_SYSDEBUG -D_MINIX -D_NETBSD_SOURCE -fno-builtin -Wall -Wno-sign-compare  -c    sys_sigreturn.c -o sys_sigreturn.o
+objcopy -x sys_sigreturn.o
+echo '   ' "compile " libsys/sys_sigsend.o
+clang -O -std=gnu99   -march=i586    -I/usr/src/lib/libsys/arch/i386/../../ -DUSE_LIVEUPDATE -DUSE_SYSDEBUG -D_MINIX -D_NETBSD_SOURCE -fno-builtin -Wall -Wno-sign-compare  -c    sys_sigsend.c -o sys_sigsend.o
+objcopy -x sys_sigsend.o
+echo '   ' "compile " libsys/sys_sprof.o
+clang -O -std=gnu99   -march=i586    -I/usr/src/lib/libsys/arch/i386/../../ -DUSE_LIVEUPDATE -DUSE_SYSDEBUG -D_MINIX -D_NETBSD_SOURCE -fno-builtin -Wall -Wno-sign-compare  -c    sys_sprof.c -o sys_sprof.o
+objcopy -x sys_sprof.o
+echo '   ' "compile " libsys/sys_statectl.o
+clang -O -std=gnu99   -march=i586    -I/usr/src/lib/libsys/arch/i386/../../ -DUSE_LIVEUPDATE -DUSE_SYSDEBUG -D_MINIX -D_NETBSD_SOURCE -fno-builtin -Wall -Wno-sign-compare  -c    sys_statectl.c -o sys_statectl.o
+objcopy -x sys_statectl.o
+echo '   ' "compile " libsys/sys_stime.o
+clang -O -std=gnu99   -march=i586    -I/usr/src/lib/libsys/arch/i386/../../ -DUSE_LIVEUPDATE -DUSE_SYSDEBUG -D_MINIX -D_NETBSD_SOURCE -fno-builtin -Wall -Wno-sign-compare  -c    sys_stime.c -o sys_stime.o
+objcopy -x sys_stime.o
+echo '   ' "compile " libsys/sys_sysctl.o
+clang -O -std=gnu99   -march=i586    -I/usr/src/lib/libsys/arch/i386/../../ -DUSE_LIVEUPDATE -DUSE_SYSDEBUG -D_MINIX -D_NETBSD_SOURCE -fno-builtin -Wall -Wno-sign-compare  -c    sys_sysctl.c -o sys_sysctl.o
+objcopy -x sys_sysctl.o
+echo '   ' "compile " libsys/sys_times.o
+clang -O -std=gnu99   -march=i586    -I/usr/src/lib/libsys/arch/i386/../../ -DUSE_LIVEUPDATE -DUSE_SYSDEBUG -D_MINIX -D_NETBSD_SOURCE -fno-builtin -Wall -Wno-sign-compare  -c    sys_times.c -o sys_times.o
+objcopy -x sys_times.o
+echo '   ' "compile " libsys/sys_trace.o
+clang -O -std=gnu99   -march=i586    -I/usr/src/lib/libsys/arch/i386/../../ -DUSE_LIVEUPDATE -DUSE_SYSDEBUG -D_MINIX -D_NETBSD_SOURCE -fno-builtin -Wall -Wno-sign-compare  -c    sys_trace.c -o sys_trace.o
+objcopy -x sys_trace.o
+echo '   ' "compile " libsys/sys_umap.o
+clang -O -std=gnu99   -march=i586    -I/usr/src/lib/libsys/arch/i386/../../ -DUSE_LIVEUPDATE -DUSE_SYSDEBUG -D_MINIX -D_NETBSD_SOURCE -fno-builtin -Wall -Wno-sign-compare  -c    sys_umap.c -o sys_umap.o
+objcopy -x sys_umap.o
+echo '   ' "compile " libsys/sys_update.o
+clang -O -std=gnu99   -march=i586    -I/usr/src/lib/libsys/arch/i386/../../ -DUSE_LIVEUPDATE -DUSE_SYSDEBUG -D_MINIX -D_NETBSD_SOURCE -fno-builtin -Wall -Wno-sign-compare  -c    sys_update.c -o sys_update.o
+objcopy -x sys_update.o
+echo '   ' "compile " libsys/sys_vircopy.o
+clang -O -std=gnu99   -march=i586    -I/usr/src/lib/libsys/arch/i386/../../ -DUSE_LIVEUPDATE -DUSE_SYSDEBUG -D_MINIX -D_NETBSD_SOURCE -fno-builtin -Wall -Wno-sign-compare  -c    sys_vircopy.c -o sys_vircopy.o
+objcopy -x sys_vircopy.o
+echo '   ' "compile " libsys/sys_vmctl.o
+clang -O -std=gnu99   -march=i586    -I/usr/src/lib/libsys/arch/i386/../../ -DUSE_LIVEUPDATE -DUSE_SYSDEBUG -D_MINIX -D_NETBSD_SOURCE -fno-builtin -Wall -Wno-sign-compare  -c    sys_vmctl.c -o sys_vmctl.o
+objcopy -x sys_vmctl.o
+echo '   ' "compile " libsys/sys_vsafecopy.o
+clang -O -std=gnu99   -march=i586    -I/usr/src/lib/libsys/arch/i386/../../ -DUSE_LIVEUPDATE -DUSE_SYSDEBUG -D_MINIX -D_NETBSD_SOURCE -fno-builtin -Wall -Wno-sign-compare  -c    sys_vsafecopy.c -o sys_vsafecopy.o
+objcopy -x sys_vsafecopy.o
+echo '   ' "compile " libsys/sys_vtimer.o
+clang -O -std=gnu99   -march=i586    -I/usr/src/lib/libsys/arch/i386/../../ -DUSE_LIVEUPDATE -DUSE_SYSDEBUG -D_MINIX -D_NETBSD_SOURCE -fno-builtin -Wall -Wno-sign-compare  -c    sys_vtimer.c -o sys_vtimer.o
+objcopy -x sys_vtimer.o
+echo '   ' "compile " libsys/sys_vumap.o
+clang -O -std=gnu99   -march=i586    -I/usr/src/lib/libsys/arch/i386/../../ -DUSE_LIVEUPDATE -DUSE_SYSDEBUG -D_MINIX -D_NETBSD_SOURCE -fno-builtin -Wall -Wno-sign-compare  -c    sys_vumap.c -o sys_vumap.o
+objcopy -x sys_vumap.o
+echo '   ' "compile " libsys/taskcall.o
+clang -O -std=gnu99   -march=i586    -I/usr/src/lib/libsys/arch/i386/../../ -DUSE_LIVEUPDATE -DUSE_SYSDEBUG -D_MINIX -D_NETBSD_SOURCE -fno-builtin -Wall -Wno-sign-compare  -c    taskcall.c -o taskcall.o
+objcopy -x taskcall.o
+echo '   ' "compile " libsys/tickdelay.o
+clang -O -std=gnu99   -march=i586    -I/usr/src/lib/libsys/arch/i386/../../ -DUSE_LIVEUPDATE -DUSE_SYSDEBUG -D_MINIX -D_NETBSD_SOURCE -fno-builtin -Wall -Wno-sign-compare  -c    tickdelay.c -o tickdelay.o
+objcopy -x tickdelay.o
+echo '   ' "compile " libsys/timers.o
+clang -O -std=gnu99   -march=i586    -I/usr/src/lib/libsys/arch/i386/../../ -DUSE_LIVEUPDATE -DUSE_SYSDEBUG -D_MINIX -D_NETBSD_SOURCE -fno-builtin -Wall -Wno-sign-compare  -c    timers.c -o timers.o
+objcopy -x timers.o
+echo '   ' "compile " libsys/vm_brk.o
+clang -O -std=gnu99   -march=i586    -I/usr/src/lib/libsys/arch/i386/../../ -DUSE_LIVEUPDATE -DUSE_SYSDEBUG -D_MINIX -D_NETBSD_SOURCE -fno-builtin -Wall -Wno-sign-compare  -c    vm_brk.c -o vm_brk.o
+objcopy -x vm_brk.o
+echo '   ' "compile " libsys/vm_exit.o
+clang -O -std=gnu99   -march=i586    -I/usr/src/lib/libsys/arch/i386/../../ -DUSE_LIVEUPDATE -DUSE_SYSDEBUG -D_MINIX -D_NETBSD_SOURCE -fno-builtin -Wall -Wno-sign-compare  -c    vm_exit.c -o vm_exit.o
+objcopy -x vm_exit.o
+echo '   ' "compile " libsys/vm_fork.o
+clang -O -std=gnu99   -march=i586    -I/usr/src/lib/libsys/arch/i386/../../ -DUSE_LIVEUPDATE -DUSE_SYSDEBUG -D_MINIX -D_NETBSD_SOURCE -fno-builtin -Wall -Wno-sign-compare  -c    vm_fork.c -o vm_fork.o
+objcopy -x vm_fork.o
+echo '   ' "compile " libsys/vm_info.o
+clang -O -std=gnu99   -march=i586    -I/usr/src/lib/libsys/arch/i386/../../ -DUSE_LIVEUPDATE -DUSE_SYSDEBUG -D_MINIX -D_NETBSD_SOURCE -fno-builtin -Wall -Wno-sign-compare  -c    vm_info.c -o vm_info.o
+objcopy -x vm_info.o
+echo '   ' "compile " libsys/vm_map_phys.o
+clang -O -std=gnu99   -march=i586    -I/usr/src/lib/libsys/arch/i386/../../ -DUSE_LIVEUPDATE -DUSE_SYSDEBUG -D_MINIX -D_NETBSD_SOURCE -fno-builtin -Wall -Wno-sign-compare  -c    vm_map_phys.c -o vm_map_phys.o
+objcopy -x vm_map_phys.o
+echo '   ' "compile " libsys/vm_notify_sig.o
+clang -O -std=gnu99   -march=i586    -I/usr/src/lib/libsys/arch/i386/../../ -DUSE_LIVEUPDATE -DUSE_SYSDEBUG -D_MINIX -D_NETBSD_SOURCE -fno-builtin -Wall -Wno-sign-compare  -c    vm_notify_sig.c -o vm_notify_sig.o
+objcopy -x vm_notify_sig.o
+echo '   ' "compile " libsys/vm_umap.o
+clang -O -std=gnu99   -march=i586    -I/usr/src/lib/libsys/arch/i386/../../ -DUSE_LIVEUPDATE -DUSE_SYSDEBUG -D_MINIX -D_NETBSD_SOURCE -fno-builtin -Wall -Wno-sign-compare  -c    vm_umap.c -o vm_umap.o
+objcopy -x vm_umap.o
+echo '   ' "compile " libsys/vm_yield_get_block.o
+clang -O -std=gnu99   -march=i586    -I/usr/src/lib/libsys/arch/i386/../../ -DUSE_LIVEUPDATE -DUSE_SYSDEBUG -D_MINIX -D_NETBSD_SOURCE -fno-builtin -Wall -Wno-sign-compare  -c    vm_yield_get_block.c -o vm_yield_get_block.o
+objcopy -x vm_yield_get_block.o
+echo '   ' "compile " libsys/vm_procctl.o
+clang -O -std=gnu99   -march=i586    -I/usr/src/lib/libsys/arch/i386/../../ -DUSE_LIVEUPDATE -DUSE_SYSDEBUG -D_MINIX -D_NETBSD_SOURCE -fno-builtin -Wall -Wno-sign-compare  -c    vm_procctl.c -o vm_procctl.o
+objcopy -x vm_procctl.o
+echo '   ' "compile " libsys/vprintf.o
+clang -O -std=gnu99   -march=i586    -I/usr/src/lib/libsys/arch/i386/../../ -DUSE_LIVEUPDATE -DUSE_SYSDEBUG -D_MINIX -D_NETBSD_SOURCE -fno-builtin -Wall -Wno-sign-compare  -c    vprintf.c -o vprintf.o
+objcopy -x vprintf.o
+echo '   ' "compile " libsys/pci_attr_r16.o
+clang -O -std=gnu99   -march=i586    -I/usr/src/lib/libsys/arch/i386/../../ -DUSE_LIVEUPDATE -DUSE_SYSDEBUG -D_MINIX -D_NETBSD_SOURCE -fno-builtin -Wall -Wno-sign-compare  -c    pci_attr_r16.c -o pci_attr_r16.o
+objcopy -x pci_attr_r16.o
+echo '   ' "compile " libsys/pci_attr_r32.o
+clang -O -std=gnu99   -march=i586    -I/usr/src/lib/libsys/arch/i386/../../ -DUSE_LIVEUPDATE -DUSE_SYSDEBUG -D_MINIX -D_NETBSD_SOURCE -fno-builtin -Wall -Wno-sign-compare  -c    pci_attr_r32.c -o pci_attr_r32.o
+objcopy -x pci_attr_r32.o
+echo '   ' "compile " libsys/pci_attr_r8.o
+clang -O -std=gnu99   -march=i586    -I/usr/src/lib/libsys/arch/i386/../../ -DUSE_LIVEUPDATE -DUSE_SYSDEBUG -D_MINIX -D_NETBSD_SOURCE -fno-builtin -Wall -Wno-sign-compare  -c    pci_attr_r8.c -o pci_attr_r8.o
+objcopy -x pci_attr_r8.o
+echo '   ' "compile " libsys/pci_attr_w16.o
+clang -O -std=gnu99   -march=i586    -I/usr/src/lib/libsys/arch/i386/../../ -DUSE_LIVEUPDATE -DUSE_SYSDEBUG -D_MINIX -D_NETBSD_SOURCE -fno-builtin -Wall -Wno-sign-compare  -c    pci_attr_w16.c -o pci_attr_w16.o
+objcopy -x pci_attr_w16.o
+echo '   ' "compile " libsys/pci_attr_w32.o
+clang -O -std=gnu99   -march=i586    -I/usr/src/lib/libsys/arch/i386/../../ -DUSE_LIVEUPDATE -DUSE_SYSDEBUG -D_MINIX -D_NETBSD_SOURCE -fno-builtin -Wall -Wno-sign-compare  -c    pci_attr_w32.c -o pci_attr_w32.o
+objcopy -x pci_attr_w32.o
+echo '   ' "compile " libsys/pci_attr_w8.o
+clang -O -std=gnu99   -march=i586    -I/usr/src/lib/libsys/arch/i386/../../ -DUSE_LIVEUPDATE -DUSE_SYSDEBUG -D_MINIX -D_NETBSD_SOURCE -fno-builtin -Wall -Wno-sign-compare  -c    pci_attr_w8.c -o pci_attr_w8.o
+objcopy -x pci_attr_w8.o
+echo '   ' "compile " libsys/pci_del_acl.o
+clang -O -std=gnu99   -march=i586    -I/usr/src/lib/libsys/arch/i386/../../ -DUSE_LIVEUPDATE -DUSE_SYSDEBUG -D_MINIX -D_NETBSD_SOURCE -fno-builtin -Wall -Wno-sign-compare  -c    pci_del_acl.c -o pci_del_acl.o
+objcopy -x pci_del_acl.o
+echo '   ' "compile " libsys/pci_dev_name.o
+clang -O -std=gnu99   -march=i586    -I/usr/src/lib/libsys/arch/i386/../../ -DUSE_LIVEUPDATE -DUSE_SYSDEBUG -D_MINIX -D_NETBSD_SOURCE -fno-builtin -Wall -Wno-sign-compare  -c    pci_dev_name.c -o pci_dev_name.o
+objcopy -x pci_dev_name.o
+echo '   ' "compile " libsys/pci_find_dev.o
+clang -O -std=gnu99   -march=i586    -I/usr/src/lib/libsys/arch/i386/../../ -DUSE_LIVEUPDATE -DUSE_SYSDEBUG -D_MINIX -D_NETBSD_SOURCE -fno-builtin -Wall -Wno-sign-compare  -c    pci_find_dev.c -o pci_find_dev.o
+objcopy -x pci_find_dev.o
+echo '   ' "compile " libsys/pci_first_dev.o
+clang -O -std=gnu99   -march=i586    -I/usr/src/lib/libsys/arch/i386/../../ -DUSE_LIVEUPDATE -DUSE_SYSDEBUG -D_MINIX -D_NETBSD_SOURCE -fno-builtin -Wall -Wno-sign-compare  -c    pci_first_dev.c -o pci_first_dev.o
+objcopy -x pci_first_dev.o
+echo '   ' "compile " libsys/pci_get_bar.o
+clang -O -std=gnu99   -march=i586    -I/usr/src/lib/libsys/arch/i386/../../ -DUSE_LIVEUPDATE -DUSE_SYSDEBUG -D_MINIX -D_NETBSD_SOURCE -fno-builtin -Wall -Wno-sign-compare  -c    pci_get_bar.c -o pci_get_bar.o
+objcopy -x pci_get_bar.o
+echo '   ' "compile " libsys/pci_ids.o
+clang -O -std=gnu99   -march=i586    -I/usr/src/lib/libsys/arch/i386/../../ -DUSE_LIVEUPDATE -DUSE_SYSDEBUG -D_MINIX -D_NETBSD_SOURCE -fno-builtin -Wall -Wno-sign-compare  -c    pci_ids.c -o pci_ids.o
+objcopy -x pci_ids.o
+echo '   ' "compile " libsys/pci_init.o
+clang -O -std=gnu99   -march=i586    -I/usr/src/lib/libsys/arch/i386/../../ -DUSE_LIVEUPDATE -DUSE_SYSDEBUG -D_MINIX -D_NETBSD_SOURCE -fno-builtin -Wall -Wno-sign-compare  -c    pci_init.c -o pci_init.o
+objcopy -x pci_init.o
+echo '   ' "compile " libsys/pci_next_dev.o
+clang -O -std=gnu99   -march=i586    -I/usr/src/lib/libsys/arch/i386/../../ -DUSE_LIVEUPDATE -DUSE_SYSDEBUG -D_MINIX -D_NETBSD_SOURCE -fno-builtin -Wall -Wno-sign-compare  -c    pci_next_dev.c -o pci_next_dev.o
+objcopy -x pci_next_dev.o
+echo '   ' "compile " libsys/pci_rescan_bus.o
+clang -O -std=gnu99   -march=i586    -I/usr/src/lib/libsys/arch/i386/../../ -DUSE_LIVEUPDATE -DUSE_SYSDEBUG -D_MINIX -D_NETBSD_SOURCE -fno-builtin -Wall -Wno-sign-compare  -c    pci_rescan_bus.c -o pci_rescan_bus.o
+objcopy -x pci_rescan_bus.o
+echo '   ' "compile " libsys/pci_reserve.o
+clang -O -std=gnu99   -march=i586    -I/usr/src/lib/libsys/arch/i386/../../ -DUSE_LIVEUPDATE -DUSE_SYSDEBUG -D_MINIX -D_NETBSD_SOURCE -fno-builtin -Wall -Wno-sign-compare  -c    pci_reserve.c -o pci_reserve.o
+objcopy -x pci_reserve.o
+echo '   ' "compile " libsys/pci_set_acl.o
+clang -O -std=gnu99   -march=i586    -I/usr/src/lib/libsys/arch/i386/../../ -DUSE_LIVEUPDATE -DUSE_SYSDEBUG -D_MINIX -D_NETBSD_SOURCE -fno-builtin -Wall -Wno-sign-compare  -c    pci_set_acl.c -o pci_set_acl.o
+objcopy -x pci_set_acl.o
+echo '   ' "compile " libsys/pci_slot_name.o
+clang -O -std=gnu99   -march=i586    -I/usr/src/lib/libsys/arch/i386/../../ -DUSE_LIVEUPDATE -DUSE_SYSDEBUG -D_MINIX -D_NETBSD_SOURCE -fno-builtin -Wall -Wno-sign-compare  -c    pci_slot_name.c -o pci_slot_name.o
+objcopy -x pci_slot_name.o
+echo '   ' "  build " libsys/libsys.a
+rm -f libsys.a
+ar crs libsys.a `NM=nm lorder get_randomness.o getidle.o profile.o profile_extern.o ser_putc.o spin.o sys_eniop.o sys_in.o sys_int86.o sys_out.o sys_readbios.o sys_sdevio.o sys_umap_remote.o sys_vinb.o sys_vinl.o sys_vinw.o sys_voutb.o sys_voutl.o sys_voutw.o timing.o tsc_util.o vbox.o alloc_util.o assert.o asynsend.o ds.o env_get_prm.o env_panic.o env_parse.o env_prefix.o fkey_ctl.o getsysinfo.o getuptime.o getuptime2.o input.o kernel_call.o kprintf.o kputc.o kputs.o optset.o panic.o safecopies.o sched_start.o sched_stop.o sef.o sef_init.o sef_liveupdate.o sef_ping.o sef_signal.o sqrt_approx.o stacktrace.o sys_abort.o sys_clear.o sys_cprof.o sys_endsig.o sys_exec.o sys_exit.o sys_fork.o sys_getinfo.o sys_getsig.o sys_hz.o sys_irqctl.o sys_kill.o sys_mcontext.o sys_memset.o sys_physcopy.o sys_privctl.o sys_profbuf.o sys_runctl.o sys_safecopy.o sys_safememset.o sys_schedctl.o sys_schedule.o sys_setalarm.o sys_setgrant.o sys_sigreturn.o sys_sigsend.o sys_sprof.o sys_statectl.o sys_stime.o sys_sysctl.o sys_times.o sys_trace.o sys_umap.o sys_update.o sys_vircopy.o sys_vmctl.o sys_vsafecopy.o sys_vtimer.o sys_vumap.o taskcall.o tickdelay.o timers.o vm_brk.o vm_exit.o vm_fork.o vm_info.o vm_map_phys.o vm_notify_sig.o vm_umap.o vm_yield_get_block.o vm_procctl.o vprintf.o pci_attr_r16.o pci_attr_r32.o pci_attr_r8.o pci_attr_w16.o pci_attr_w32.o pci_attr_w8.o pci_del_acl.o pci_dev_name.o pci_find_dev.o pci_first_dev.o pci_get_bar.o pci_ids.o pci_init.o pci_next_dev.o pci_rescan_bus.o pci_reserve.o pci_set_acl.o pci_slot_name.o | tsort -q`
