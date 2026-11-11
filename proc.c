@@ -1908,6 +1908,7 @@ static struct proc * lottery_pick(struct proc *head)
     unsigned long total;
     unsigned long draw;
     unsigned long weight;
+	static unsigned debug_count = 0;
 
     int lottery_enabled;
 
@@ -1942,6 +1943,29 @@ static struct proc * lottery_pick(struct proc *head)
      * Draw a winning ticket.
      */
     draw = lottery_rand_below(total);
+
+	if (debug_count < 12) {
+
+    printf(
+        "LOTTERY total=%lu draw=%lu |",
+        total,
+        draw
+    );
+
+    for (rp = head; rp != NULL; rp = rp->p_nextready) {
+
+        printf(
+            " [EP=%d TICKETS=%u]",
+            rp->p_endpoint,
+            rp->p_lottery_tickets
+        );
+    }
+
+    printf("\n");
+
+    debug_count++;
+}
+	
 
     /*
      * Second pass:
