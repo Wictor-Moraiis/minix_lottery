@@ -165,8 +165,6 @@ void proc_init(void)
 		ip->p_rts_flags |= RTS_PROC_STOP;
 		set_idle_name(ip->p_name, i);
 	}
-
-	printf("LOTTERY DEBUG BUILD CONFIRMADO\n");
 }
 
 static void switch_address_space_idle(void)
@@ -397,8 +395,7 @@ check_misc_flags:
 	/*
 	 * Count actual process context switches.
 	 */
-	if (old_p != p)
-	{
+	if (old_p != p) {
 
 		if (old_p->p_lottery_tickets > 0)
 			old_p->p_context_switches_out++;
@@ -1854,46 +1851,48 @@ void dequeue(struct proc *rp)
  */
 static unsigned long lottery_state = 0x6D2B79F5UL;
 
+
 /* Generate a pseudorandom 32-bit value. */
 static unsigned long lottery_random(void)
 {
-	unsigned long x;
+    unsigned long x;
 
-	x = lottery_state;
+    x = lottery_state;
 
-	x ^= x << 13;
-	x ^= x >> 17;
-	x ^= x << 5;
+    x ^= x << 13;
+    x ^= x >> 17;
+    x ^= x << 5;
 
-	if (x == 0)
-		x = 0x6D2B79F5UL;
+    if (x == 0)
+        x = 0x6D2B79F5UL;
 
-	lottery_state = x;
+    lottery_state = x;
 
-	return x;
+    return x;
 }
+
 
 /* Generate a value in the interval [0, limit - 1]. */
 static unsigned long lottery_rand_below(unsigned long limit)
 {
-	unsigned long value;
-	unsigned long threshold;
+    unsigned long value;
+    unsigned long threshold;
 
-	if (limit <= 1)
-		return 0;
+    if (limit <= 1)
+        return 0;
 
-	/*
-	 * Rejection sampling avoids modulo bias.
-	 */
-	threshold = (0UL - limit) % limit;
+    /*
+     * Rejection sampling avoids modulo bias.
+     */
+    threshold = (0UL - limit) % limit;
 
-	do
-	{
-		value = lottery_random();
-	} while (value < threshold);
+    do {
+        value = lottery_random();
+    } while (value < threshold);
 
-	return value % limit;
+    return value % limit;
 }
+
 
 /*
  * Select a process from a ready queue using weighted lottery.
@@ -1902,105 +1901,74 @@ static unsigned long lottery_rand_below(unsigned long limit)
  * If no process has registered for Lottery Scheduling,
  * the original FIFO selection is preserved.
  */
-static struct proc *lottery_pick(struct proc *head)
+static struct proc * lottery_pick(struct proc *head)
 {
-	struct proc *rp;
+    struct proc *rp;
 
-	unsigned long total;
-	unsigned long draw;
-	unsigned long weight;
-	static unsigned debug_count = 0;
-	int lottery_participants;
+    unsigned long total;
+    unsigned long draw;
+    unsigned long weight;
 
-	int lottery_enabled;
+    int lottery_enabled;
 
-	total = 0;
-	lottery_enabled = 0;
+    total = 0;
+    lottery_enabled = 0;
 
-	lottery_participants = 0;
+    /*
+     * First pass:
+     * calculate the total number of tickets.
+     */
+    for (rp = head; rp != NULL; rp = rp->p_nextready) {
 
-	/*
-	 * First pass:
-	 * calculate the total number of tickets.
-	 */
-	for (rp = head; rp != NULL; rp = rp->p_nextready)
-	{
+        if (rp->p_lottery_tickets > 0)
+            lottery_enabled = 1;
 
-		if (rp->p_lottery_tickets > 0)
-		{
-			lottery_enabled = 1;
-			lottery_participants++;
-		}
-		if (rp->p_lottery_tickets > 0)
-			weight = rp->p_lottery_tickets;
-		else
-			weight = LOTTERY_DEFAULT_TICKETS;
+        if (rp->p_lottery_tickets > 0)
+            weight = rp->p_lottery_tickets;
+        else
+            weight = LOTTERY_DEFAULT_TICKETS;
 
-		total += weight;
-	}
+        total += weight;
+    }
 
-	/*
-	 * Preserve FIFO behavior when Lottery Scheduling
-	 * is not being used.
-	 */
-	if (!lottery_enabled || total == 0)
-		return head;
+    /*
+     * Preserve FIFO behavior when Lottery Scheduling
+     * is not being used.
+     */
+    if (!lottery_enabled || total == 0)
+        return head;
 
-	/*
-	 * Draw a winning ticket.
-	 */
-	draw = lottery_rand_below(total);
+    /*
+     * Draw a winning ticket.
+     */
+    draw = lottery_rand_below(total);
 
-	if (debug_count < 12 && lottery_participants >= 2)
-	{
+    /*
+     * Second pass:
+     * find the process that owns the winning ticket.
+     */
+    for (rp = head; rp != NULL; rp = rp->p_nextready) {
 
-		printf(
-			"LOTTERY total=%lu draw=%lu |",
-			total,
-			draw);
+        if (rp->p_lottery_tickets > 0)
+            weight = rp->p_lottery_tickets;
+        else
+            weight = LOTTERY_DEFAULT_TICKETS;
 
-		for (rp = head; rp != NULL; rp = rp->p_nextready)
-		{
+        if (draw < weight) {
 
-			printf(
-				" [EP=%d TICKETS=%u]",
-				rp->p_endpoint,
-				rp->p_lottery_tickets);
-		}
+            if (rp->p_lottery_tickets > 0)
+                rp->p_lottery_wins++;
 
-		printf("\n");
+            return rp;
+        }
 
-		debug_count++;
-	}
+        draw -= weight;
+    }
 
-	/*
-	 * Second pass:
-	 * find the process that owns the winning ticket.
-	 */
-	for (rp = head; rp != NULL; rp = rp->p_nextready)
-	{
-
-		if (rp->p_lottery_tickets > 0)
-			weight = rp->p_lottery_tickets;
-		else
-			weight = LOTTERY_DEFAULT_TICKETS;
-
-		if (draw < weight)
-		{
-
-			if (rp->p_lottery_tickets > 0)
-				rp->p_lottery_wins++;
-
-			return rp;
-		}
-
-		draw -= weight;
-	}
-
-	/*
-	 * Defensive fallback.
-	 */
-	return head;
+    /*
+     * Defensive fallback.
+     */
+    return head;
 }
 
 /*===========================================================================*
@@ -2024,21 +1992,19 @@ static struct proc *pick_proc(void)
 	 */
 	rdy_head = get_cpulocal_var(run_q_head);
 
-	for (q = 0; q < NR_SCHED_QUEUES; q++)
-	{
+	for (q = 0; q < NR_SCHED_QUEUES; q++) {
 
-		if (!(rp = rdy_head[q]))
-		{
+		if (!(rp = rdy_head[q])) {
 			TRACE(VF_PICKPROC, printf(
-								   "cpu %d queue %d empty\n",
-								   cpuid, q););
+				"cpu %d queue %d empty\n",
+				cpuid, q););
 			continue;
 		}
 
 		/*
-		 * Apply Lottery Scheduling only to USER_Q.
-		 * All other queues preserve the original policy.
-		 */
+		* Apply Lottery Scheduling only to USER_Q.
+		* All other queues preserve the original policy.
+		*/
 		if (q == USER_Q)
 			rp = lottery_pick(rp);
 
@@ -2140,8 +2106,8 @@ void proc_no_time(struct proc *p)
 {
 
 	if (p->p_lottery_tickets > 0)
-		p->p_quantum_expirations++;
-
+    p->p_quantum_expirations++;
+	
 	if (!proc_kernel_scheduler(p) && priv(p)->s_flags & PREEMPTIBLE)
 	{
 		/* this dequeues the process */
