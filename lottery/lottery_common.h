@@ -44,6 +44,9 @@
 #endif
 
 #define LOTTERY_LIMIT 1000000UL
+#define LOTTERY_MAX_DURATION_SECONDS 3600
+
+static int lottery_duration_seconds = LOTTERY_SECONDS;
 
 static int lottery_tickets[LOTTERY_NUM_WORKERS] = LOTTERY_TICKETS;
 static int lottery_worker_count = LOTTERY_NUM_WORKERS;
@@ -375,6 +378,8 @@ static int lottery_configure_custom(void)
     printf("\nCUSTOM LOTTERY CONFIGURATION\n");
     printf("Allowed workers: 2 to %d | tickets per worker: 1 to %d\n",
            LOTTERY_NUM_WORKERS, SCHEDULING_MAX_TICKETS);
+    printf("Allowed duration: 1 to %d seconds\n",
+           LOTTERY_MAX_DURATION_SECONDS);
 
     if (lottery_read_integer("Number of workers: ", 2,
                              LOTTERY_NUM_WORKERS, &value) != 0) {
@@ -397,8 +402,16 @@ static int lottery_configure_custom(void)
         lottery_tickets[i] = value;
     }
 
-    printf("\nDuration is fixed at %d seconds for comparable tests.\n",
-           LOTTERY_SECONDS);
+    if (lottery_read_integer("Execution duration in seconds: ", 1,
+                             LOTTERY_MAX_DURATION_SECONDS, &value) != 0) {
+        printf("Invalid duration. Choose a value from 1 to %d seconds.\n",
+               LOTTERY_MAX_DURATION_SECONDS);
+        return -1;
+    }
+
+    lottery_duration_seconds = value;
+    printf("\nConfigured duration: %d seconds.\n",
+           lottery_duration_seconds);
     return 0;
 }
 #endif
@@ -461,7 +474,7 @@ int main(void)
     lottery_result("LOTTERY SCHEDULING BENCHMARK\n");
     lottery_result("Profile: %s\n", LOTTERY_PROFILE);
     lottery_result("Workers: %d | duration: %d seconds\n",
-                   lottery_worker_count, LOTTERY_SECONDS);
+                   lottery_worker_count, lottery_duration_seconds);
     lottery_result("============================================================\n");
     printf("Starting benchmark: %s\n", LOTTERY_PROFILE);
     printf("Detailed results will be appended to %s\n", LOTTERY_RESULTS_PATH);
@@ -555,10 +568,10 @@ int main(void)
     }
 
     lottery_result("\nSTART: releasing all workers for %d seconds.\n",
-                   LOTTERY_SECONDS);
+                   lottery_duration_seconds);
     fflush(lottery_results_file);
     printf("Workers registered. Benchmark running for %d seconds...\n",
-           LOTTERY_SECONDS);
+           lottery_duration_seconds);
     fflush(stdout);
 
     for (i = 0; i < lottery_worker_count; i++) {
@@ -575,7 +588,7 @@ int main(void)
      * Parent sleeps for the entire measurement window. No progress
      * printing, ProcFS polling, or frequent wakeups during the run.
      */
-    i = LOTTERY_SECONDS;
+    i = lottery_duration_seconds;
     while (i > 0)
         i = sleep((unsigned int) i);
 
@@ -634,7 +647,7 @@ int main(void)
     }
 
     lottery_result("\n=== FINAL RESULTS ===\n");
-    lottery_result("Measurement window: %d seconds\n", LOTTERY_SECONDS);
+    lottery_result("Measurement window: %d seconds\n", lottery_duration_seconds);
 
     for (i = 0; i < lottery_worker_count; i++) {
         double expected_share;
