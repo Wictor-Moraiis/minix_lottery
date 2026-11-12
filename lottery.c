@@ -1,17 +1,16 @@
 /*
- * Benchmark simples para executar Lottery Scheduling no MINIX 3.2.1.
- *
- * Dois workers recebem tickets diferentes, sao liberados juntos e
- * executam uma carga finita de CPU. O pai apenas informa os tickets,
- * o inicio e o fim da execucao.
- *
- * As estatisticas ao vivo devem ser acompanhadas pelo dump F9 do IS.
+ * Benchmark temporizado para Lottery Scheduling no MINIX 3.2.1.
+ * Dois workers com 10 e 30 tickets executam carga de CPU durante
+ * uma janela fixa. O pai dorme durante a medicao e encerra os filhos
+ * cooperativamente com SIGUSR1. As estatisticas do kernel sao vistas
+ * pela tecla F9 do Information Server.
  */
 
 #include <lib.h>
 #include <minix/com.h>
 #include <minix/callnr.h>
 #include <errno.h>
+#include <signal.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -21,284 +20,245 @@
 
 #define NUM_WORKERS 2
 #define LIMIT 1000000UL
-#define WORKLOAD_REPETITIONS 160
+#define BENCHMARK_SECONDS 30
 
-static const int tickets[NUM_WORKERS] = {
-    10, 30
-};
+static const int tickets[NUM_WORKERS] = { 10, 30 };
+static volatile sig_atomic_t stop_requested = 0;
 
-/* Conta numeros primos para manter o worker ocupado com CPU. */
+static void request_stop(int sig)
+{
+    (void) sig;
+    stop_requested = 1;
+}
+
+static int set_lottery_tickets(int ticket_count)
+{
+    message m;
+    memset(&m, 0, sizeof(m));
+    m.m1_i1 = ticket_count;
+    return _syscall(PM_PROC_NR, PM_SET_LOTTERY_TICKETS, &m);
+}
+
+/* Verifica o pedido de parada durante a carga, sem esperar o fim de 1M. */
 static unsigned long count_primes(unsigned long limit)
 {
-    unsigned long n;
-    unsigned long d;
-    unsigned long count;
+    unsigned long n, d, count;
     int prime;
 
     count = 0;
-
-    for (n = 2; n <= limit; n++) {
+    for (n = 2; n <= limit && !stop_requested; n++) {
         prime = 1;
-
         for (d = 2; d <= n / d; d++) {
             if (n % d == 0) {
                 prime = 0;
                 break;
             }
         }
-
         if (prime)
             count++;
     }
-
     return count;
 }
 
-/* Registra os tickets do proprio processo no PM/SCHED. */
-static int set_lottery_tickets(int ticket_count)
-{
-    message m;
-
-    memset(&m, 0, sizeof(m));
-    m.m1_i1 = ticket_count;
-
-    return _syscall(PM_PROC_NR, PM_SET_LOTTERY_TICKETS, &m);
-}
-
-/* Le exatamente um byte do pipe. */
-static int read_signal(int fd, char *value)
+static int read_byte(int fd, char *c)
 {
     ssize_t n;
-
-    do {
-        n = read(fd, value, 1);
-    } while (n == -1 && errno == EINTR);
-
+    do { n = read(fd, c, 1); } while (n < 0 && errno == EINTR);
     return n == 1 ? 0 : -1;
 }
 
-/* Escreve exatamente um byte no pipe. */
-static int write_signal(int fd, char value)
+static int write_byte(int fd, char c)
 {
     ssize_t n;
-
-    do {
-        n = write(fd, &value, 1);
-    } while (n == -1 && errno == EINTR);
-
+    do { n = write(fd, &c, 1); } while (n < 0 && errno == EINTR);
     return n == 1 ? 0 : -1;
 }
 
-/*
- * Cada worker registra seus tickets, avisa ao pai que esta pronto
- * e aguarda a liberacao. Depois executa apenas a carga de CPU.
- */
-static void run_worker(int worker, int gate_fd, int ready_fd)
+static void worker_main(int index, int gate_read, int ready_write,
+                        int result_write)
 {
-    char ready;
-    char start_signal;
-    unsigned long i;
-    volatile unsigned long checksum;
+    char c;
+    unsigned long rounds, checksum;
 
-    if (set_lottery_tickets(tickets[worker]) != 0) {
-        (void) write_signal(ready_fd, 'E');
-        close(ready_fd);
-        close(gate_fd);
-        _exit(EXIT_FAILURE);
+    if (signal(SIGUSR1, request_stop) == SIG_ERR)
+        _exit(2);
+
+    if (set_lottery_tickets(tickets[index]) != 0) {
+        (void) write_byte(ready_write, 'E');
+        _exit(3);
     }
 
-    if (write_signal(ready_fd, 'R') == -1) {
-        close(ready_fd);
-        close(gate_fd);
-        _exit(EXIT_FAILURE);
-    }
+    if (write_byte(ready_write, 'R') != 0)
+        _exit(4);
 
-    close(ready_fd);
+    close(ready_write);
 
-    if (read_signal(gate_fd, &start_signal) == -1) {
-        close(gate_fd);
-        _exit(EXIT_FAILURE);
-    }
+    if (read_byte(gate_read, &c) != 0)
+        _exit(5);
+    close(gate_read);
 
-    close(gate_fd);
-
+    rounds = 0;
     checksum = 0;
-    for (i = 0; i < WORKLOAD_REPETITIONS; i++)
+    while (!stop_requested) {
         checksum += count_primes(LIMIT);
+        rounds++;
+    }
 
-    /* Mantem o resultado observavel e evita eliminar a carga. */
+    /* Reporta apenas um numero pequeno ao processo pai. */
     (void) checksum;
+    (void) write(result_write, &rounds, sizeof(rounds));
+    close(result_write);
+    _exit(0);
+}
 
-    _exit(EXIT_SUCCESS);
+static int read_full(int fd, void *buffer, size_t size)
+{
+    char *p;
+    ssize_t n;
+    size_t done;
+
+    p = (char *) buffer;
+    done = 0;
+    while (done < size) {
+        n = read(fd, p + done, size - done);
+        if (n < 0 && errno == EINTR)
+            continue;
+        if (n <= 0)
+            return -1;
+        done += (size_t) n;
+    }
+    return 0;
 }
 
 int main(void)
 {
     int gates[NUM_WORKERS][2];
-    int ready_pipe[2];
-    pid_t workers[NUM_WORKERS];
-    pid_t finished_pid;
-
-    int i;
-    int j;
-    int created;
-    int finished;
-    int status;
-    int ready_ok;
-    int failed;
-    int worker_index;
-    char ready_status;
+    int ready[2], results[2];
+    pid_t pids[NUM_WORKERS], ended;
+    unsigned long rounds[NUM_WORKERS];
+    char c;
+    int i, j, created, ok, status, completed;
+    unsigned long total;
 
     created = 0;
-    finished = 0;
-    ready_ok = 1;
-    failed = 0;
+    ok = 1;
+    completed = 0;
 
-    printf("=== LOTTERY SCHEDULING ===\n");
-    printf("Preparando workers...\n");
+    printf("=== LOTTERY SCHEDULING BENCHMARK ===\n");
+    printf("Duracao: %d segundos | carga: count_primes(%lu)\n",
+           BENCHMARK_SECONDS, LIMIT);
     fflush(stdout);
 
     for (i = 0; i < NUM_WORKERS; i++) {
-        if (pipe(gates[i]) == -1) {
-            perror("pipe");
-            while (i > 0) {
-                i--;
-                close(gates[i][0]);
-                close(gates[i][1]);
-            }
-            return EXIT_FAILURE;
-        }
+        if (pipe(gates[i]) < 0) { perror("pipe"); return 1; }
+    }
+    if (pipe(ready) < 0 || pipe(results) < 0) {
+        perror("pipe");
+        return 1;
     }
 
-    if (pipe(ready_pipe) == -1) {
-        perror("pipe ready");
-        for (i = 0; i < NUM_WORKERS; i++) {
-            close(gates[i][0]);
-            close(gates[i][1]);
-        }
-        return EXIT_FAILURE;
-    }
-
-    /* Cria os dois workers. */
     for (i = 0; i < NUM_WORKERS; i++) {
-        workers[i] = fork();
-
-        if (workers[i] == -1) {
+        pids[i] = fork();
+        if (pids[i] < 0) {
             perror("fork");
-            failed = 1;
+            ok = 0;
             break;
         }
-
-        if (workers[i] == 0) {
-            close(ready_pipe[0]);
-
+        if (pids[i] == 0) {
+            close(ready[0]);
+            close(results[0]);
             for (j = 0; j < NUM_WORKERS; j++) {
                 close(gates[j][1]);
                 if (j != i)
                     close(gates[j][0]);
             }
-
-            run_worker(i, gates[i][0], ready_pipe[1]);
-            _exit(EXIT_FAILURE);
+            worker_main(i, gates[i][0], ready[1], results[1]);
+            _exit(1);
         }
-
         created++;
     }
 
-    /* O pai nao usa as extremidades de leitura dos gates. */
+    close(ready[1]);
+    close(results[1]);
     for (i = 0; i < NUM_WORKERS; i++)
         close(gates[i][0]);
 
-    close(ready_pipe[1]);
-
-    if (created != NUM_WORKERS) {
+    if (!ok || created != NUM_WORKERS) {
         for (i = 0; i < NUM_WORKERS; i++)
             close(gates[i][1]);
-        close(ready_pipe[0]);
-
-        while (wait(&status) != -1)
-            ;
-        return EXIT_FAILURE;
+        close(ready[0]);
+        close(results[0]);
+        while (wait(&status) > 0) ;
+        return 1;
     }
 
-    /* Espera os dois workers confirmarem o registro dos tickets. */
     for (i = 0; i < NUM_WORKERS; i++) {
-        if (read_signal(ready_pipe[0], &ready_status) == -1) {
-            fprintf(stderr, "Falha aguardando o Worker %d.\n", i + 1);
-            ready_ok = 0;
-            break;
-        }
-
-        if (ready_status != 'R') {
-            fprintf(stderr,
-                    "Worker %d nao conseguiu registrar seus tickets.\n",
-                    i + 1);
-            ready_ok = 0;
+        if (read_byte(ready[0], &c) != 0 || c != 'R') {
+            fprintf(stderr, "Falha no registro dos tickets do Worker %d.\n", i + 1);
+            ok = 0;
         }
     }
+    close(ready[0]);
 
-    close(ready_pipe[0]);
-
-    if (!ready_ok) {
-        /* O EOF no gate libera qualquer worker que ainda esteja aguardando. */
-        for (i = 0; i < NUM_WORKERS; i++)
+    if (!ok) {
+        for (i = 0; i < NUM_WORKERS; i++) {
             close(gates[i][1]);
-
-        while (wait(&status) != -1)
-            ;
-        return EXIT_FAILURE;
+            (void) kill(pids[i], SIGUSR1);
+        }
+        close(results[0]);
+        while (wait(&status) > 0) ;
+        return 1;
     }
 
-    printf("\nWorkers registrados com sucesso:\n");
-    for (i = 0; i < NUM_WORKERS; i++)
-        printf("Worker %d | PID=%ld | Tickets=%d\n",
-               i + 1, (long) workers[i], tickets[i]);
-
-    printf("\nInicio da execucao: liberando os dois workers.\n");
+    printf("Workers prontos: PID %ld (%d tickets), PID %ld (%d tickets).\n",
+           (long) pids[0], tickets[0], (long) pids[1], tickets[1]);
+    printf("Inicio da medicao: liberando os workers por %d segundos.\n",
+           BENCHMARK_SECONDS);
     fflush(stdout);
 
-    /* Libera os dois workers; ambos ja estao registrados no Lottery. */
     for (i = 0; i < NUM_WORKERS; i++) {
-        if (write_signal(gates[i][1], 'S') == -1) {
-            fprintf(stderr, "Falha ao liberar o Worker %d.\n", i + 1);
-            failed = 1;
-        }
+        (void) write_byte(gates[i][1], 'S');
         close(gates[i][1]);
     }
 
-    /* O pai fica bloqueado aqui ate os dois workers terminarem. */
-    while (finished < created) {
-        finished_pid = wait(&status);
+    /* O pai dorme; nao fica imprimindo nem competindo pelo quantum. */
+    i = BENCHMARK_SECONDS;
+    while (i > 0)
+        i = sleep((unsigned int) i);
 
-        if (finished_pid == -1) {
-            if (errno == EINTR)
-                continue;
-            perror("wait");
-            failed = 1;
-            break;
-        }
+    printf("Fim da janela. Solicitando parada cooperativa...\n");
+    fflush(stdout);
 
-        finished++;
+    for (i = 0; i < NUM_WORKERS; i++)
+        (void) kill(pids[i], SIGUSR1);
 
-        worker_index = -1;
-        for (i = 0; i < created; i++) {
-            if (workers[i] == finished_pid) {
-                worker_index = i;
-                break;
-            }
-        }
-
-        if (worker_index == -1 ||
-            !WIFEXITED(status) ||
-            WEXITSTATUS(status) != EXIT_SUCCESS) {
-            failed = 1;
+    for (i = 0; i < NUM_WORKERS; i++) {
+        if (read_full(results[0], &rounds[i], sizeof(rounds[i])) != 0) {
+            rounds[i] = 0;
+            ok = 0;
         }
     }
+    close(results[0]);
 
-    if (failed)
-        printf("\nFim da execucao: ocorreu uma falha em algum worker.\n");
-    else
-        printf("\nFim da execucao: os dois workers concluiram a carga.\n");
+    while ((ended = wait(&status)) > 0) {
+        completed++;
+        if (!WIFEXITED(status) || WEXITSTATUS(status) != 0)
+            ok = 0;
+    }
 
-    return failed ? EXIT_FAILURE : EXIT_SUCCESS;
+    total = rounds[0] + rounds[1];
+    printf("\n=== RESULTADO ===\n");
+    printf("Worker 1 | tickets=%d | unidades=%lu\n", tickets[0], rounds[0]);
+    printf("Worker 2 | tickets=%d | unidades=%lu\n", tickets[1], rounds[1]);
+    printf("Total de unidades: %lu | workers encerrados: %d/%d\n",
+           total, completed, NUM_WORKERS);
+
+    if (total > 0) {
+        printf("Participacao por unidades: Worker 1 %.2f%% | Worker 2 %.2f%%\n",
+               100.0 * (double) rounds[0] / (double) total,
+               100.0 * (double) rounds[1] / (double) total);
+        printf("Proporcao esperada pelos tickets: 25%% / 75%%\n");
+    }
+
+    return ok ? 0 : 1;
 }
