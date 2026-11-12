@@ -19,6 +19,7 @@
 #include <errno.h>
 #include <fcntl.h>
 #include <signal.h>
+#include <stdarg.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -47,6 +48,29 @@
 static int lottery_tickets[LOTTERY_NUM_WORKERS] = LOTTERY_TICKETS;
 static int lottery_worker_count = LOTTERY_NUM_WORKERS;
 static volatile sig_atomic_t lottery_stop_requested = 0;
+
+#define LOTTERY_RESULTS_PATH "/test/lottery_results.txt"
+static FILE *lottery_results_file = NULL;
+
+static void lottery_result(const char *format, ...)
+{
+    va_list args;
+
+    if (lottery_results_file == NULL)
+        return;
+
+    va_start(args, format);
+    vfprintf(lottery_results_file, format, args);
+    va_end(args);
+}
+
+static void lottery_close_results(void)
+{
+    if (lottery_results_file != NULL) {
+        fclose(lottery_results_file);
+        lottery_results_file = NULL;
+    }
+}
 
 struct lottery_worker_report {
     int index;
@@ -411,6 +435,12 @@ int main(void)
         return EXIT_FAILURE;
 #endif
 
+    lottery_results_file = fopen(LOTTERY_RESULTS_PATH, "a");
+    if (lottery_results_file == NULL) {
+        perror("Could not open Lottery results file");
+        return EXIT_FAILURE;
+    }
+
     for (i = 0; i < lottery_worker_count; i++) {
         start_gates[i][0] = -1;
         start_gates[i][1] = -1;
@@ -427,10 +457,14 @@ int main(void)
     ready_pipe[0] = ready_pipe[1] = -1;
     report_pipe[0] = report_pipe[1] = -1;
 
-    printf("=== LOTTERY SCHEDULING BENCHMARK ===\n");
-    printf("Profile: %s\n", LOTTERY_PROFILE);
-    printf("Workers: %d | duration: %d seconds\n",
-           lottery_worker_count, LOTTERY_SECONDS);
+    lottery_result("\n\n============================================================\n");
+    lottery_result("LOTTERY SCHEDULING BENCHMARK\n");
+    lottery_result("Profile: %s\n", LOTTERY_PROFILE);
+    lottery_result("Workers: %d | duration: %d seconds\n",
+                   lottery_worker_count, LOTTERY_SECONDS);
+    lottery_result("============================================================\n");
+    printf("Starting benchmark: %s\n", LOTTERY_PROFILE);
+    printf("Detailed results will be appended to %s\n", LOTTERY_RESULTS_PATH);
     fflush(stdout);
 
     /* Allocate all synchronization pipes before forking. */
@@ -512,15 +546,18 @@ int main(void)
     if (!ready_ok)
         goto runtime_error;
 
-    printf("\nRegistered participants:\n");
+    lottery_result("\nRegistered participants:\n");
     for (i = 0; i < lottery_worker_count; i++) {
-        printf("Worker %d | PID=%ld | tickets=%d | expected share=%.2f%%\n",
-               i + 1, (long) pids[i], lottery_tickets[i],
-               100.0 * (double) lottery_tickets[i] /
-               (double) total_tickets);
+        lottery_result("Worker %d | PID=%ld | tickets=%d | expected share=%.2f%%\n",
+                       i + 1, (long) pids[i], lottery_tickets[i],
+                       100.0 * (double) lottery_tickets[i] /
+                       (double) total_tickets);
     }
 
-    printf("\nSTART: releasing all workers for %d seconds.\n",
+    lottery_result("\nSTART: releasing all workers for %d seconds.\n",
+                   LOTTERY_SECONDS);
+    fflush(lottery_results_file);
+    printf("Workers registered. Benchmark running for %d seconds...\n",
            LOTTERY_SECONDS);
     fflush(stdout);
 
@@ -542,8 +579,9 @@ int main(void)
     while (i > 0)
         i = sleep((unsigned int) i);
 
-    printf("\nEND: stopping workers and collecting final statistics.\n");
+    printf("Measurement finished. Collecting final statistics...\n");
     fflush(stdout);
+    lottery_result("\nEND: stopping workers and collecting final statistics.\n");
 
     for (i = 0; i < lottery_worker_count; i++) {
         if (kill(pids[i], SIGUSR1) == -1 && errno != ESRCH) {
@@ -595,8 +633,8 @@ int main(void)
         total_units += reports[i].units;
     }
 
-    printf("\n=== FINAL RESULTS ===\n");
-    printf("Measurement window: %d seconds\n", LOTTERY_SECONDS);
+    lottery_result("\n=== FINAL RESULTS ===\n");
+    lottery_result("Measurement window: %d seconds\n", LOTTERY_SECONDS);
 
     for (i = 0; i < lottery_worker_count; i++) {
         double expected_share;
@@ -611,27 +649,30 @@ int main(void)
                       100.0 * (double) reports[i].units /
                       (double) total_units : 0.0;
 
-        printf("\nWorker %d | PID=%ld\n", i + 1, (long) pids[i]);
-        printf("  Tickets: %d | expected share: %.2f%%\n",
-               lottery_tickets[i], expected_share);
+        lottery_result("\nWorker %d | PID=%ld\n", i + 1, (long) pids[i]);
+        lottery_result("  Tickets: %d | expected share: %.2f%%\n",
+                       lottery_tickets[i], expected_share);
 
         if (stats_ok[i]) {
-            printf("  Wins: %lu | share among measured workers: %.2f%%\n",
-                   stats[i].wins, wins_share);
-            printf("  Context in/out: %lu/%lu | quantum expirations: %lu\n",
-                   stats[i].context_in, stats[i].context_out,
-                   stats[i].quantum_expirations);
+            lottery_result("  Wins: %lu | share among measured workers: %.2f%%\n",
+                           stats[i].wins, wins_share);
+            lottery_result("  Context in/out: %lu/%lu | quantum expirations: %lu\n",
+                           stats[i].context_in, stats[i].context_out,
+                           stats[i].quantum_expirations);
         } else {
-            printf("  Wins: unavailable (use F9 snapshot to inspect live counters)\n");
+            lottery_result("  Wins: unavailable (use F9 snapshot to inspect live counters)\n");
         }
 
-        printf("  Completed work units: %lu | work share: %.2f%%\n",
-               reports[i].units, units_share);
+        lottery_result("  Completed work units: %lu | work share: %.2f%%\n",
+                       reports[i].units, units_share);
     }
 
-    printf("\nTotal Lottery wins collected: %lu\n", total_wins);
-    printf("Total completed work units: %lu\n", total_units);
-    printf("END: releasing workers and cleaning up.\n");
+    lottery_result("\nTotal Lottery wins collected: %lu\n", total_wins);
+    lottery_result("Total completed work units: %lu\n", total_units);
+    lottery_result("END: releasing workers and cleaning up.\n");
+    fflush(lottery_results_file);
+    printf("Benchmark complete. Results appended to %s\n",
+           LOTTERY_RESULTS_PATH);
     fflush(stdout);
 
     /* Let workers exit only after their final ProcFS snapshot is read. */
@@ -650,6 +691,7 @@ int main(void)
     if (waited != lottery_worker_count)
         reports_ok = 0;
 
+    lottery_close_results();
     return reports_ok ? EXIT_SUCCESS : EXIT_FAILURE;
 
 fork_error:
@@ -669,6 +711,8 @@ fork_error:
     if (report_pipe[0] >= 0) close(report_pipe[0]);
     if (report_pipe[1] >= 0) close(report_pipe[1]);
     while (wait(&status) > 0) ;
+    lottery_result("\nBENCHMARK ABORTED: failure while creating workers.\n");
+    lottery_close_results();
     return EXIT_FAILURE;
 
 runtime_error:
@@ -690,6 +734,8 @@ runtime_error:
     if (report_pipe[0] >= 0) close(report_pipe[0]);
     if (report_pipe[1] >= 0) close(report_pipe[1]);
     while (wait(&status) > 0) ;
+    lottery_result("\nBENCHMARK ABORTED: runtime or worker error.\n");
+    lottery_close_results();
     return EXIT_FAILURE;
 
 setup_error:
@@ -699,6 +745,8 @@ setup_error:
     }
     lottery_close_pair(ready_pipe);
     lottery_close_pair(report_pipe);
+    lottery_result("\nBENCHMARK ABORTED: setup error.\n");
+    lottery_close_results();
     return EXIT_FAILURE;
 }
 
