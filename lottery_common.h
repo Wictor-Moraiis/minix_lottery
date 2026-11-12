@@ -310,29 +310,6 @@ static void lottery_close_pair(int pair[2])
     }
 }
 
-static void lottery_release_children(int count,
-                                     int start_gates[][2],
-                                     int exit_gates[][2],
-                                     pid_t pids[])
-{
-    int i;
-
-    for (i = 0; i < count; i++) {
-        if (start_gates[i][1] >= 0) {
-            close(start_gates[i][1]);
-            start_gates[i][1] = -1;
-        }
-
-        if (exit_gates[i][1] >= 0) {
-            /* Wake children that already sent their final report. */
-            (void) write(exit_gates[i][1], "X", 1);
-            close(exit_gates[i][1]);
-            exit_gates[i][1] = -1;
-        }
-    }
-
-    (void) pids;
-}
 
 int main(void)
 {
