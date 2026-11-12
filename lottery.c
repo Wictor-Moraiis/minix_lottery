@@ -271,6 +271,14 @@ int main(void)
 
     signal(SIGPIPE, SIG_IGN);
 
+    /*
+     * Diagnostico desde o inicio: se o programa travar, o terminal
+     * mostra exatamente em qual fase isso aconteceu.
+     */
+    printf("=== BENCHMARK LOTTERY SCHEDULING ===\n");
+    printf("Preparando pipes e workers...\n");
+    fflush(stdout);
+
     /* Cria os pipes individuais de liberacao dos workers. */
     for (i = 0; i < NUM_WORKERS; i++) {
         if (pipe(gates[i]) == -1) {
@@ -298,6 +306,8 @@ int main(void)
 
     /* Cria os dois processos trabalhadores. */
     for (i = 0; i < NUM_WORKERS; i++) {
+        printf("Criando Worker %d...\\n", i + 1);
+        fflush(stdout);
         workers[i] = fork();
 
         if (workers[i] < 0) {
@@ -328,6 +338,10 @@ int main(void)
         close(gates[i][0]);
 
     close(ready_pipe[1]);
+
+    printf("Workers criados: %d. Aguardando registro dos tickets...\\n",
+           created);
+    fflush(stdout);
 
     if (created != NUM_WORKERS)
         ready_ok = 0;
