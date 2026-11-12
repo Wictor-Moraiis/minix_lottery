@@ -372,7 +372,7 @@ void lottery_dmp(void)
 
   printf("\nLOTTERY SCHEDULING - LIVE PROCESS VIEW\n");
   printf("This view includes ticket holders in ANY priority queue.\n");
-  printf("PROC_NR ENDPOINT NAME     QUEUE TICKETS WINS\n");
+  printf("PROC_NR ENDPOINT NAME     PRIO TICKETS WINS\n");
 
   /*
    * Do not restrict ticket holders to USER_Q. The queue column shows
@@ -396,8 +396,12 @@ void lottery_dmp(void)
       if (strncmp(rp->p_name, "lottery", 7) == 0)
           lottery_processes++;
 
-      state = (rp->p_rts_flags == 0) ?
-          "RUNNABLE" : p_rts_flags_str(rp->p_rts_flags);
+      if (rp->p_rts_flags != 0)
+          state = p_rts_flags_str(rp->p_rts_flags);
+      else if ((unsigned char) rp->p_priority == USER_Q)
+          state = "RUNNABLE_USER_Q";
+      else
+          state = "RUNNABLE_OTHER_Q";
 
       printf("%7d %8x %-8.8s %5u %7u %7lu\n",
              (int) proc_nr(rp),
@@ -425,7 +429,7 @@ void lottery_dmp(void)
   if (ticket_holders == 0)
       printf("WARNING: no process currently has Lottery tickets.\n");
 
-  printf("Queue value is the current p_priority (USER_Q=%d).\n", USER_Q);
+  printf("PRIO is current p_priority; Lottery selection runs only at USER_Q=%d.\n", USER_Q);
   printf("Press F9 again to refresh this view.\n");
 }
 
