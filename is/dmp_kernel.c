@@ -5,6 +5,7 @@
 #include <assert.h>
 #include <machine/interrupt.h>
 #include <minix/endpoint.h>
+#include <minix/u64.h>
 #include <minix/sysutil.h>
 #include <minix/sys_config.h>
 #include "kernel/const.h"
@@ -347,6 +348,97 @@ void proctab_dmp(void)
     /* LSC FIXME: Not implemented for arm */
 }
 #endif				/* defined(__arm__) */
+
+/*===========================================================================*
+ *                         lottery_dmp
+ *===========================================================================*/
+#define LOTTERY_PAGE_SIZE 9
+
+void lottery_dmp(void)
+{
+  static int page_phase = 0;
+  static int page_start = NR_TASKS;
+  struct proc *rp;
+  char *state;
+  int i, r, shown;
+
+  /* Refresh the process table before every F9 dump. */
+  if ((r = sys_getproctab(proc)) != OK) {
+      printf("IS: warning: couldn't get copy of process table: %d\n", r);
+      return;
+  }
+
+  printf("\nLottery Scheduling - live kernel statistics\n");
+  printf("USER_Q=%d | tickets=0 means default weight 1 in USER_Q\n",
+         USER_Q);
+  printf(" nr endpoint name     prio tickets    wins ctx-in ctx-out q-exp state\n");
+
+  shown = 0;
+
+  /*
+   * First show processes explicitly registered with Lottery tickets,
+   * even if their current priority or state is unexpected.
+   * Then show other runnable processes in USER_Q; with zero explicit
+   * tickets, these participate with the default weight of one.
+   */
+  for (; page_phase < 2; page_phase++) {
+      for (i = page_start; i < NR_TASKS + NR_PROCS; i++) {
+          rp = &proc[i];
+
+          if (isemptyp(rp) || proc_nr(rp) < 0)
+              continue;
+
+          if (page_phase == 0) {
+              if (rp->p_lottery_tickets == 0)
+                  continue;
+          } else {
+              if (rp->p_lottery_tickets != 0 ||
+                  (unsigned char) rp->p_priority != USER_Q ||
+                  rp->p_rts_flags != 0)
+                  continue;
+          }
+
+          /* Keep the output within a console screen. */
+          if (shown >= LOTTERY_PAGE_SIZE) {
+              page_start = i;
+              printf("-- more: press F9 for the next page --\n");
+              return;
+          }
+
+          state = (rp->p_rts_flags == 0) ?
+              "RUNNABLE" : p_rts_flags_str(rp->p_rts_flags);
+
+          printf("%3d %8x %-8.8s %4u %7u %7lu %6lu %6lu %5lu %-8s\n",
+                 (int) proc_nr(rp),
+                 (unsigned) rp->p_endpoint,
+                 rp->p_name,
+                 (unsigned char) rp->p_priority,
+                 rp->p_lottery_tickets,
+                 rp->p_lottery_wins,
+                 rp->p_context_switches_in,
+                 rp->p_context_switches_out,
+                 rp->p_quantum_expirations,
+                 state);
+
+          printf("    lottery_cycles hi:lo = %lu:%lu\n",
+                 ex64hi(rp->p_lottery_cycles),
+                 ex64lo(rp->p_lottery_cycles));
+
+          shown++;
+      }
+
+      /* The next phase starts at the first user-process slot. */
+      page_start = NR_TASKS;
+  }
+
+  page_phase = 0;
+  page_start = NR_TASKS;
+
+  if (shown == 0)
+      printf("No Lottery ticket holders or runnable USER_Q processes found.\n");
+  else
+      printf("End of Lottery table. Press F9 again to refresh from the first page.\n");
+}
 
 /*===========================================================================*
  *				procstack_dmp  				     *
