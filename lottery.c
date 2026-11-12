@@ -1,5 +1,11 @@
-
-/* Benchmark de CPU para o MINIX 3.2.1 com Lottery Scheduling. */
+/* Benchmark de CPU para validar a distribuicao do Lottery Scheduling
+ * no MINIX 3.2.1.
+ *
+ * Os workers executam continuamente durante o mesmo intervalo.
+ * Nao ha leitura de ProcFS nem escrita em arquivo durante a medicao.
+ * Ao final, o processo pai para os dois workers, coleta os contadores
+ * e somente depois grava os resultados.
+ */
 
 #include <lib.h>
 #include <minix/com.h>
@@ -17,19 +23,12 @@
 
 #define NUM_WORKERS 2
 #define LIMIT 1000000UL
-#define SAMPLE_EVERY 10
+#define BENCHMARK_SECONDS 30
 
-/* Todos executam a mesma quantidade de trabalho. */
-static const int workloads[NUM_WORKERS] = {
-    160, 160
-};
-
-/* Cada trabalhador recebe uma quantidade diferente de tickets. */
 static const int tickets[NUM_WORKERS] = {
     10, 30
 };
 
-/* Estrutura com os contadores do Lottery Scheduling. */
 struct lottery_stats {
     unsigned int tickets;
     unsigned long wins;
@@ -40,11 +39,15 @@ struct lottery_stats {
     unsigned long cycles_lo;
 };
 
-/* Conta numeros primos para gerar carga de CPU. */
+/* Conta numeros primos para manter o worker ocupado com CPU. */
 static unsigned long count_primes(unsigned long limit)
 {
-    unsigned long n, d, count = 0;
+    unsigned long n;
+    unsigned long d;
+    unsigned long count;
     int prime;
+
+    count = 0;
 
     for (n = 2; n <= limit; n++) {
         prime = 1;
@@ -77,9 +80,12 @@ static int set_lottery_tickets(int ticket_count)
 /* Le todos os bytes solicitados de um pipe. */
 static int read_full(int fd, void *buffer, size_t length)
 {
-    size_t done = 0;
+    size_t done;
     ssize_t n;
-    char *p = (char *)buffer;
+    char *p;
+
+    done = 0;
+    p = (char *) buffer;
 
     while (done < length) {
         n = read(fd, p + done, length - done);
@@ -90,18 +96,21 @@ static int read_full(int fd, void *buffer, size_t length)
         if (n <= 0)
             return -1;
 
-        done += (size_t)n;
+        done += (size_t) n;
     }
 
     return 0;
 }
 
-/* Escreve todos os bytes solicitados em um pipe. */
+/* Escreve todos os bytes solicitados em um pipe ou arquivo. */
 static int write_full(int fd, const void *buffer, size_t length)
 {
-    size_t done = 0;
+    size_t done;
     ssize_t n;
-    const char *p = (const char *)buffer;
+    const char *p;
+
+    done = 0;
+    p = (const char *) buffer;
 
     while (done < length) {
         n = write(fd, p + done, length - done);
@@ -112,7 +121,7 @@ static int write_full(int fd, const void *buffer, size_t length)
         if (n <= 0)
             return -1;
 
-        done += (size_t)n;
+        done += (size_t) n;
     }
 
     return 0;
@@ -122,8 +131,8 @@ static int write_full(int fd, const void *buffer, size_t length)
 static long long elapsed_us(const struct timeval *start,
                             const struct timeval *finish)
 {
-    return ((long long)finish->tv_sec - start->tv_sec) * 1000000LL
-         + ((long long)finish->tv_usec - start->tv_usec);
+    return ((long long) finish->tv_sec - start->tv_sec) * 1000000LL
+         + ((long long) finish->tv_usec - start->tv_usec);
 }
 
 /* Le os contadores disponibilizados pelo ProcFS. */
@@ -131,11 +140,10 @@ static int read_lottery_stats(pid_t pid, struct lottery_stats *stats)
 {
     char path[64];
     char line[128];
-    unsigned int found = 0;
+    unsigned int found;
     FILE *fp;
 
-    snprintf(path, sizeof(path),
-             "/proc/%ld/lottery", (long)pid);
+    snprintf(path, sizeof(path), "/proc/%ld/lottery", (long) pid);
 
     fp = fopen(path, "r");
 
@@ -143,33 +151,26 @@ static int read_lottery_stats(pid_t pid, struct lottery_stats *stats)
         return -1;
 
     memset(stats, 0, sizeof(*stats));
+    found = 0;
 
     while (fgets(line, sizeof(line), fp) != NULL) {
 
-        if (sscanf(line, "tickets=%u",
-                   &stats->tickets) == 1)
+        if (sscanf(line, "tickets=%u", &stats->tickets) == 1)
             found |= 1;
-
-        else if (sscanf(line, "wins=%lu",
-                        &stats->wins) == 1)
+        else if (sscanf(line, "wins=%lu", &stats->wins) == 1)
             found |= 2;
-
         else if (sscanf(line, "context_switches_in=%lu",
                         &stats->context_switches_in) == 1)
             found |= 4;
-
         else if (sscanf(line, "context_switches_out=%lu",
                         &stats->context_switches_out) == 1)
             found |= 8;
-
         else if (sscanf(line, "quantum_expirations=%lu",
                         &stats->quantum_expirations) == 1)
             found |= 16;
-
         else if (sscanf(line, "cycles_hi=%lu",
                         &stats->cycles_hi) == 1)
             found |= 32;
-
         else if (sscanf(line, "cycles_lo=%lu",
                         &stats->cycles_lo) == 1)
             found |= 64;
@@ -180,92 +181,95 @@ static int read_lottery_stats(pid_t pid, struct lottery_stats *stats)
     return found == 127 ? 0 : -1;
 }
 
-/* Grava uma fotografia dos contadores no arquivo de resultados. */
-static void log_lottery_snapshot(
-    int log_fd,
-    int worker,
-    pid_t pid,
-    int repetitions,
-    const struct timeval *start,
-    const char *phase)
+/*
+ * Cada filho registra seus tickets, avisa ao pai que esta pronto
+ * e aguarda o sinal de inicio. Durante a medicao, executa somente
+ * a carga de CPU: nao acessa ProcFS, pipes ou arquivos.
+ */
+static void run_worker(int worker, int gate_fd, int ready_fd)
 {
-    struct lottery_stats stats;
-    struct timeval now;
-    long long elapsed;
-    char buffer[512];
-    int length;
+    char status;
+    char start_signal;
+    unsigned long rounds;
+    unsigned long limit;
+    volatile unsigned long checksum;
 
-    if (gettimeofday(&now, NULL) == -1)
-        return;
-
-    elapsed = elapsed_us(start, &now);
-
-    if (read_lottery_stats(pid, &stats) == -1) {
-
-        length = snprintf(
-            buffer, sizeof(buffer),
-            "Worker %d | PID %ld | ERRO ao ler "
-            "/proc/%ld/lottery | errno=%d\n",
-            worker, (long)pid, (long)pid, errno
-        );
-
-    } else {
-
-        length = snprintf(
-            buffer, sizeof(buffer),
-            "T+%lld.%03llds | Worker %d | %s | PID=%ld "
-            "| Repeticoes=%d | Tickets=%u | Wins=%lu "
-            "| Context_in=%lu | Context_out=%lu "
-            "| Quantum_exp=%lu | Cycles_hi=%lu | Cycles_lo=%lu\n",
-
-            elapsed / 1000000LL,
-            (elapsed % 1000000LL) / 1000LL,
-            worker,
-            phase,
-            (long)pid,
-            repetitions,
-            stats.tickets,
-            stats.wins,
-            stats.context_switches_in,
-            stats.context_switches_out,
-            stats.quantum_expirations,
-            stats.cycles_hi,
-            stats.cycles_lo
-        );
+    if (set_lottery_tickets(tickets[worker]) != 0) {
+        status = 'E';
+        (void) write_full(ready_fd, &status, 1);
+        close(ready_fd);
+        close(gate_fd);
+        _exit(EXIT_FAILURE);
     }
 
-    if (length > 0 && length < (int)sizeof(buffer))
-        (void)write(log_fd, buffer, (size_t)length);
+    status = 'R';
+
+    if (write_full(ready_fd, &status, 1) == -1) {
+        close(ready_fd);
+        close(gate_fd);
+        _exit(EXIT_FAILURE);
+    }
+
+    close(ready_fd);
+
+    if (read_full(gate_fd, &start_signal, 1) == -1) {
+        close(gate_fd);
+        _exit(EXIT_FAILURE);
+    }
+
+    close(gate_fd);
+
+    rounds = 0;
+    checksum = 0;
+
+    for (;;) {
+        /* Varia o limite para evitar repetir exatamente a mesma chamada. */
+        limit = LIMIT - ((rounds % 1000UL) * 100UL);
+        checksum += count_primes(limit);
+        rounds++;
+    }
 }
 
 int main(void)
 {
     int gates[NUM_WORKERS][2];
     int ready_pipe[2];
+    pid_t workers[NUM_WORKERS];
 
-    int i, j;
-    int created = 0;
-    int reaped = 0;
+    int i;
+    int j;
+    int created;
     int status;
-    int failed = 0;
-    int start_ok = 1;
-    int ticket_result;
-    int iteration;
+    int failed;
+    int ready_ok;
+    int remaining;
     int log_fd;
+    int length;
 
     char ready_status;
-    pid_t pid;
+    char start_signal;
 
-    unsigned long total;
+    struct lottery_stats stats[NUM_WORKERS];
+    int stats_ok[NUM_WORKERS];
 
-    struct timeval start, finish;
+    struct timeval start;
+    struct timeval finish;
     long long elapsed;
+    unsigned long total_worker_wins;
+    double share;
+
+    char line[512];
+
+    created = 0;
+    failed = 0;
+    ready_ok = 1;
+    log_fd = -1;
+    start_signal = 'S';
 
     signal(SIGPIPE, SIG_IGN);
 
-    /* Cria os pipes de sincronizacao. */
+    /* Cria os pipes individuais de liberacao dos workers. */
     for (i = 0; i < NUM_WORKERS; i++) {
-
         if (pipe(gates[i]) == -1) {
             perror("pipe");
 
@@ -289,50 +293,17 @@ int main(void)
         return EXIT_FAILURE;
     }
 
-    /* Cria o arquivo de resultados. */
-    log_fd = open(
-        "resultado_lottery.txt",
-        O_WRONLY | O_CREAT | O_TRUNC | O_APPEND,
-        0644
-    );
-
-    if (log_fd == -1) {
-        perror("resultado_lottery.txt");
-
-        close(ready_pipe[0]);
-        close(ready_pipe[1]);
-
-        for (i = 0; i < NUM_WORKERS; i++) {
-            close(gates[i][0]);
-            close(gates[i][1]);
-        }
-
-        return EXIT_FAILURE;
-    }
-
-    {
-        const char *header =
-            "=== BENCHMARK LOTTERY SCHEDULING ===\n"
-            "Workers: 2 | Workload: 160 | Tickets: 10 e 30\n\n";
-
-        (void)write(log_fd, header, strlen(header));
-    }
-
-    fflush(NULL);
-
-    /* Cria os processos trabalhadores. */
+    /* Cria os dois processos trabalhadores. */
     for (i = 0; i < NUM_WORKERS; i++) {
+        workers[i] = fork();
 
-        pid = fork();
-
-        if (pid < 0) {
+        if (workers[i] < 0) {
             perror("fork");
             failed = 1;
             break;
         }
 
-        if (pid == 0) {
-
+        if (workers[i] == 0) {
             close(ready_pipe[0]);
 
             for (j = 0; j < NUM_WORKERS; j++) {
@@ -342,216 +313,210 @@ int main(void)
                     close(gates[j][0]);
             }
 
-            /* Registra os tickets do trabalhador. */
-            ticket_result = set_lottery_tickets(tickets[i]);
-
-            if (ticket_result != 0) {
-
-                fprintf(stderr,
-                    "Worker %d: falha ao registrar %d tickets "
-                    "(retorno=%d, errno=%d).\n",
-                    i + 1, tickets[i], ticket_result, errno
-                );
-
-                ready_status = 'E';
-
-                (void)write_full(
-                    ready_pipe[1], &ready_status, 1
-                );
-
-                close(ready_pipe[1]);
-                close(gates[i][0]);
-                close(log_fd);
-
-                _exit(EXIT_FAILURE);
-            }
-
-            /* Informa ao pai que esta pronto. */
-            ready_status = 'R';
-
-            if (write_full(
-                    ready_pipe[1], &ready_status, 1) == -1) {
-
-                close(ready_pipe[1]);
-                close(gates[i][0]);
-                close(log_fd);
-
-                _exit(EXIT_FAILURE);
-            }
-
-            close(ready_pipe[1]);
-
-            /* Aguarda o sinal de inicio do pai. */
-            if (read_full(
-                    gates[i][0], &start, sizeof(start)) == -1) {
-
-                close(gates[i][0]);
-                close(log_fd);
-
-                _exit(EXIT_FAILURE);
-            }
-
-            close(gates[i][0]);
-
-            total = 0;
-
-            /* Executa o trabalho e registra os contadores. */
-            for (iteration = 0;
-                 iteration < workloads[i];
-                 iteration++) {
-
-                total += count_primes(
-                    LIMIT - (unsigned long)iteration * 1000UL
-                );
-
-                if ((iteration + 1) % SAMPLE_EVERY == 0) {
-
-                    log_lottery_snapshot(
-                        log_fd,
-                        i + 1,
-                        getpid(),
-                        iteration + 1,
-                        &start,
-                        "ANDAMENTO"
-                    );
-                }
-            }
-
-            if (gettimeofday(&finish, NULL) == -1) {
-                close(log_fd);
-                _exit(EXIT_FAILURE);
-            }
-
-            elapsed = elapsed_us(&start, &finish);
-
-            /* Registra a ultima fotografia antes de sair. */
-            log_lottery_snapshot(
-                log_fd,
-                i + 1,
-                getpid(),
-                workloads[i],
-                &start,
-                "FINAL"
-            );
-
-            printf(
-                "Worker %d | Tickets: %d | Repeticoes: %d "
-                "| Resultado: %lu | Conclusao: %lld.%03lld segundos\n",
-
-                i + 1,
-                tickets[i],
-                workloads[i],
-                total,
-                elapsed / 1000000LL,
-                (elapsed % 1000000LL) / 1000LL
-            );
-
-            fflush(stdout);
-
-            close(log_fd);
-
-            _exit(EXIT_SUCCESS);
+            run_worker(i, gates[i][0], ready_pipe[1]);
+            _exit(EXIT_FAILURE);
         }
 
         created++;
     }
 
-    /* O pai fecha as extremidades de leitura dos gates. */
+    /* O pai nao utiliza as extremidades de leitura dos gates. */
     for (i = 0; i < NUM_WORKERS; i++)
         close(gates[i][0]);
 
     close(ready_pipe[1]);
 
-    /* Aguarda todos os trabalhadores ficarem prontos. */
+    if (created != NUM_WORKERS)
+        ready_ok = 0;
+
+    /* Aguarda os workers confirmarem o registro dos tickets. */
     for (i = 0; i < created; i++) {
-
-        if (read_full(
-                ready_pipe[0], &ready_status, 1) == -1) {
-
+        if (read_full(ready_pipe[0], &ready_status, 1) == -1) {
             fprintf(stderr,
-                "Pai: nao recebeu todos os sinais de prontidao.\n"
-            );
-
-            failed = 1;
-            start_ok = 0;
+                    "Pai: nao recebeu a confirmacao do Worker %d.\n",
+                    i + 1);
+            ready_ok = 0;
             break;
         }
 
         if (ready_status != 'R') {
-
             fprintf(stderr,
-                "Pai: um trabalhador nao ficou pronto.\n"
-            );
-
-            failed = 1;
-            start_ok = 0;
+                    "Pai: Worker %d falhou ao registrar os tickets.\n",
+                    i + 1);
+            ready_ok = 0;
         }
     }
 
     close(ready_pipe[0]);
 
-    /* Define o mesmo instante inicial para os trabalhadores. */
-    if (start_ok && gettimeofday(&start, NULL) == -1) {
-        perror("gettimeofday");
-        failed = 1;
-        start_ok = 0;
+    if (!ready_ok) {
+        /* Fechar os gates faz os filhos ainda bloqueados encerrarem. */
+        for (i = 0; i < NUM_WORKERS; i++)
+            close(gates[i][1]);
+
+        while (wait(&status) != -1)
+            ;
+
+        return EXIT_FAILURE;
     }
 
-    /* Libera todos os trabalhadores. */
+    /*
+     * O instante inicial e registrado antes de liberar os dois filhos.
+     * Depois da liberacao, o pai dorme e nao participa da disputa por CPU.
+     */
+    if (gettimeofday(&start, NULL) == -1) {
+        perror("gettimeofday");
+        failed = 1;
+    }
+
     for (i = 0; i < NUM_WORKERS; i++) {
-
-        if (i < created && start_ok) {
-
-            if (write_full(
-                    gates[i][1], &start, sizeof(start)) == -1) {
-
-                fprintf(stderr,
-                    "Pai: falha ao liberar Worker %d.\n",
-                    i + 1
-                );
-
-                failed = 1;
-            }
+        if (!failed &&
+            write_full(gates[i][1], &start_signal, 1) == -1) {
+            fprintf(stderr,
+                    "Pai: falha ao iniciar Worker %d.\n", i + 1);
+            failed = 1;
         }
 
         close(gates[i][1]);
     }
 
-    /* Aguarda o encerramento dos trabalhadores. */
-    while (reaped < created) {
+    if (failed) {
+        for (i = 0; i < created; i++)
+            (void) kill(workers[i], SIGKILL);
 
-        pid = wait(&status);
+        while (wait(&status) != -1)
+            ;
 
-        if (pid == -1) {
+        return EXIT_FAILURE;
+    }
 
-            if (errno == EINTR)
-                continue;
+    printf("=== BENCHMARK LOTTERY SCHEDULING ===\n");
+    printf("Workers: 2 | Duracao: %d segundos | Tickets: 10 e 30\n",
+           BENCHMARK_SECONDS);
+    printf("Carga: count_primes() continuo, sem I/O nos workers.\n\n");
+    fflush(stdout);
 
-            perror("wait");
-            failed = 1;
-            break;
-        }
+    /* O pai fica bloqueado enquanto os dois workers disputam a CPU. */
+    remaining = BENCHMARK_SECONDS;
 
-        reaped++;
+    while (remaining > 0)
+        remaining = sleep((unsigned int) remaining);
 
-        if (!WIFEXITED(status) ||
-            WEXITSTATUS(status) != EXIT_SUCCESS) {
-
+    /*
+     * Congela os dois workers antes de ler ProcFS.
+     * Assim, os contadores ficam estaveis durante a coleta.
+     */
+    for (i = 0; i < NUM_WORKERS; i++) {
+        if (kill(workers[i], SIGSTOP) == -1) {
+            perror("SIGSTOP");
             failed = 1;
         }
     }
 
-    {
-        const char *footer =
-            "\n=== BENCHMARK CONCLUIDO ===\n";
-
-        (void)write(log_fd, footer, strlen(footer));
-    }
-
-    close(log_fd);
-
-    if (created != NUM_WORKERS)
+    if (gettimeofday(&finish, NULL) == -1) {
+        perror("gettimeofday");
         failed = 1;
+        finish = start;
+    }
+
+    elapsed = elapsed_us(&start, &finish);
+
+    /* So agora, com os workers parados, o pai consulta o ProcFS. */
+    total_worker_wins = 0;
+
+    for (i = 0; i < NUM_WORKERS; i++) {
+        stats_ok[i] = (read_lottery_stats(workers[i], &stats[i]) == 0);
+
+        if (stats_ok[i])
+            total_worker_wins += stats[i].wins;
+        else {
+            fprintf(stderr,
+                    "Nao foi possivel ler /proc/%ld/lottery.\n",
+                    (long) workers[i]);
+            failed = 1;
+        }
+    }
+
+    log_fd = open("resultado_lottery.txt",
+                  O_WRONLY | O_CREAT | O_TRUNC,
+                  0644);
+
+    length = snprintf(
+        line, sizeof(line),
+        "=== BENCHMARK LOTTERY SCHEDULING ===\n"
+        "Workers: 2 | Duracao configurada: %d segundos "
+        "| Tickets: 10 e 30\n"
+        "Carga: count_primes() continuo, sem I/O nos workers.\n"
+        "Tempo medido: %lld.%03lld segundos\n\n",
+        BENCHMARK_SECONDS,
+        elapsed / 1000000LL,
+        (elapsed % 1000000LL) / 1000LL
+    );
+
+    printf("%s", line);
+
+    if (log_fd >= 0)
+        (void) write_full(log_fd, line, (size_t) length);
+    else
+        perror("resultado_lottery.txt");
+
+    for (i = 0; i < NUM_WORKERS; i++) {
+        if (!stats_ok[i])
+            continue;
+
+        if (total_worker_wins > 0)
+            share = 100.0 * (double) stats[i].wins /
+                    (double) total_worker_wins;
+        else
+            share = 0.0;
+
+        length = snprintf(
+            line, sizeof(line),
+            "Worker %d | PID=%ld | Tickets=%u | Wins=%lu "
+            "| Share entre workers=%.2f%% "
+            "| Context_in=%lu | Context_out=%lu "
+            "| Quantum_exp=%lu | Cycles_hi=%lu | Cycles_lo=%lu\n",
+            i + 1,
+            (long) workers[i],
+            stats[i].tickets,
+            stats[i].wins,
+            share,
+            stats[i].context_switches_in,
+            stats[i].context_switches_out,
+            stats[i].quantum_expirations,
+            stats[i].cycles_hi,
+            stats[i].cycles_lo
+        );
+
+        printf("%s", line);
+
+        if (log_fd >= 0)
+            (void) write_full(log_fd, line, (size_t) length);
+    }
+
+    if (log_fd >= 0) {
+        const char *footer = "\n=== BENCHMARK CONCLUIDO ===\n";
+        (void) write_full(log_fd, footer, strlen(footer));
+        close(log_fd);
+    }
+
+    /*
+     * Os contadores ja foram coletados. Agora os filhos podem ser
+     * encerrados sem perder as informacoes disponibilizadas pelo ProcFS.
+     */
+    for (i = 0; i < NUM_WORKERS; i++) {
+        if (kill(workers[i], SIGKILL) == -1 && errno != ESRCH) {
+            perror("SIGKILL");
+            failed = 1;
+        }
+    }
+
+    while (wait(&status) != -1) {
+        if (!WIFEXITED(status) && !WIFSIGNALED(status))
+            failed = 1;
+    }
+
+    printf("\n=== BENCHMARK CONCLUIDO ===\n");
 
     return failed ? EXIT_FAILURE : EXIT_SUCCESS;
 }
