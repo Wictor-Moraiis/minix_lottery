@@ -44,7 +44,8 @@
 
 #define LOTTERY_LIMIT 1000000UL
 
-static const int lottery_tickets[LOTTERY_NUM_WORKERS] = LOTTERY_TICKETS;
+static int lottery_tickets[LOTTERY_NUM_WORKERS] = LOTTERY_TICKETS;
+static int lottery_worker_count = LOTTERY_NUM_WORKERS;
 static volatile sig_atomic_t lottery_stop_requested = 0;
 
 struct lottery_worker_report {
@@ -310,6 +311,74 @@ static void lottery_close_pair(int pair[2])
     }
 }
 
+#ifdef LOTTERY_CUSTOM_INPUT
+static int lottery_read_integer(const char *prompt, int minimum,
+                                int maximum, int *value)
+{
+    char input[64];
+    char *end;
+    long parsed;
+
+    printf("%s", prompt);
+    fflush(stdout);
+
+    if (fgets(input, sizeof(input), stdin) == NULL)
+        return -1;
+
+    errno = 0;
+    parsed = strtol(input, &end, 10);
+
+    if (end == input || errno == ERANGE)
+        return -1;
+
+    while (*end == ' ' || *end == '\\t' ||
+           *end == '\\r' || *end == '\\n')
+        end++;
+
+    if (*end != '\\0' || parsed < minimum || parsed > maximum)
+        return -1;
+
+    *value = (int) parsed;
+    return 0;
+}
+
+static int lottery_configure_custom(void)
+{
+    char prompt[96];
+    int i;
+    int value;
+
+    printf("\\nCUSTOM LOTTERY CONFIGURATION\\n");
+    printf("Allowed workers: 2 to %d | tickets per worker: 1 to %d\\n",
+           LOTTERY_NUM_WORKERS, SCHEDULING_MAX_TICKETS);
+
+    if (lottery_read_integer("Number of workers: ", 2,
+                             LOTTERY_NUM_WORKERS, &value) != 0) {
+        printf("Invalid worker count.\\n");
+        return -1;
+    }
+
+    lottery_worker_count = value;
+
+    for (i = 0; i < lottery_worker_count; i++) {
+        snprintf(prompt, sizeof(prompt),
+                 "Tickets for Worker %d: ", i + 1);
+
+        if (lottery_read_integer(prompt, 1,
+                                 SCHEDULING_MAX_TICKETS, &value) != 0) {
+            printf("Invalid ticket count for Worker %d.\\n", i + 1);
+            return -1;
+        }
+
+        lottery_tickets[i] = value;
+    }
+
+    printf("\\nDuration is fixed at %d seconds for comparable tests.\\n",
+           LOTTERY_SECONDS);
+    return 0;
+}
+#endif
+
 
 int main(void)
 {
@@ -337,7 +406,12 @@ int main(void)
     total_wins = 0;
     total_units = 0;
 
-    for (i = 0; i < LOTTERY_NUM_WORKERS; i++) {
+#ifdef LOTTERY_CUSTOM_INPUT
+    if (lottery_configure_custom() != 0)
+        return EXIT_FAILURE;
+#endif
+
+    for (i = 0; i < lottery_worker_count; i++) {
         start_gates[i][0] = -1;
         start_gates[i][1] = -1;
         exit_gates[i][0] = -1;
@@ -356,11 +430,11 @@ int main(void)
     printf("=== LOTTERY SCHEDULING BENCHMARK ===\n");
     printf("Profile: %s\n", LOTTERY_PROFILE);
     printf("Workers: %d | duration: %d seconds\n",
-           LOTTERY_NUM_WORKERS, LOTTERY_SECONDS);
+           lottery_worker_count, LOTTERY_SECONDS);
     fflush(stdout);
 
     /* Allocate all synchronization pipes before forking. */
-    for (i = 0; i < LOTTERY_NUM_WORKERS; i++) {
+    for (i = 0; i < lottery_worker_count; i++) {
         if (pipe(start_gates[i]) == -1 ||
             pipe(exit_gates[i]) == -1) {
             perror("pipe worker");
@@ -373,7 +447,7 @@ int main(void)
         goto setup_error;
     }
 
-    for (i = 0; i < LOTTERY_NUM_WORKERS; i++) {
+    for (i = 0; i < lottery_worker_count; i++) {
         pids[i] = fork();
 
         if (pids[i] == -1) {
@@ -385,7 +459,7 @@ int main(void)
             close(ready_pipe[0]);
             close(report_pipe[0]);
 
-            for (j = 0; j < LOTTERY_NUM_WORKERS; j++) {
+            for (j = 0; j < lottery_worker_count; j++) {
                 if (start_gates[j][1] >= 0)
                     close(start_gates[j][1]);
                 if (exit_gates[j][1] >= 0)
@@ -416,7 +490,7 @@ int main(void)
     close(report_pipe[1]);
     report_pipe[1] = -1;
 
-    for (i = 0; i < LOTTERY_NUM_WORKERS; i++) {
+    for (i = 0; i < lottery_worker_count; i++) {
         close(start_gates[i][0]);
         start_gates[i][0] = -1;
         close(exit_gates[i][0]);
@@ -424,7 +498,7 @@ int main(void)
     }
 
     /* Wait until every child has successfully registered its own tickets. */
-    for (i = 0; i < LOTTERY_NUM_WORKERS; i++) {
+    for (i = 0; i < lottery_worker_count; i++) {
         if (lottery_read_byte(ready_pipe[0], &token) != 0 || token != 'R') {
             fprintf(stderr, "Worker %d failed to register Lottery tickets.\n",
                     i + 1);
@@ -439,7 +513,7 @@ int main(void)
         goto runtime_error;
 
     printf("\nRegistered participants:\n");
-    for (i = 0; i < LOTTERY_NUM_WORKERS; i++) {
+    for (i = 0; i < lottery_worker_count; i++) {
         printf("Worker %d | PID=%ld | tickets=%d | expected share=%.2f%%\n",
                i + 1, (long) pids[i], lottery_tickets[i],
                100.0 * (double) lottery_tickets[i] /
@@ -450,7 +524,7 @@ int main(void)
            LOTTERY_SECONDS);
     fflush(stdout);
 
-    for (i = 0; i < LOTTERY_NUM_WORKERS; i++) {
+    for (i = 0; i < lottery_worker_count; i++) {
         if (write(start_gates[i][1], "S", 1) != 1)
             start_ok = 0;
         close(start_gates[i][1]);
@@ -471,7 +545,7 @@ int main(void)
     printf("\nEND: stopping workers and collecting final statistics.\n");
     fflush(stdout);
 
-    for (i = 0; i < LOTTERY_NUM_WORKERS; i++) {
+    for (i = 0; i < lottery_worker_count; i++) {
         if (kill(pids[i], SIGUSR1) == -1 && errno != ESRCH) {
             perror("SIGUSR1");
             reports_ok = 0;
@@ -479,7 +553,7 @@ int main(void)
     }
 
     /* Receive one small, atomic report from each stopped worker. */
-    for (i = 0; i < LOTTERY_NUM_WORKERS; i++) {
+    for (i = 0; i < lottery_worker_count; i++) {
         struct lottery_worker_report report;
 
         if (lottery_read_all(report_pipe[0], &report, sizeof(report)) != 0) {
@@ -488,7 +562,7 @@ int main(void)
             break;
         }
 
-        if (report.index < 0 || report.index >= LOTTERY_NUM_WORKERS ||
+        if (report.index < 0 || report.index >= lottery_worker_count ||
             received[report.index]) {
             fprintf(stderr, "Invalid worker report received.\n");
             reports_ok = 0;
@@ -509,7 +583,7 @@ int main(void)
      * All workers are now blocked on their exit gates: their ticket and
      * win counters are stable, and their kernel process slots still exist.
      */
-    for (i = 0; i < LOTTERY_NUM_WORKERS; i++) {
+    for (i = 0; i < lottery_worker_count; i++) {
         stats_ok[i] = (lottery_read_stats(pids[i], &stats[i]) == 0);
         if (stats_ok[i])
             total_wins += stats[i].wins;
@@ -524,7 +598,7 @@ int main(void)
     printf("\n=== FINAL RESULTS ===\n");
     printf("Measurement window: %d seconds\n", LOTTERY_SECONDS);
 
-    for (i = 0; i < LOTTERY_NUM_WORKERS; i++) {
+    for (i = 0; i < lottery_worker_count; i++) {
         double expected_share;
         double wins_share;
         double units_share;
@@ -561,7 +635,7 @@ int main(void)
     fflush(stdout);
 
     /* Let workers exit only after their final ProcFS snapshot is read. */
-    for (i = 0; i < LOTTERY_NUM_WORKERS; i++) {
+    for (i = 0; i < lottery_worker_count; i++) {
         (void) write(exit_gates[i][1], "X", 1);
         close(exit_gates[i][1]);
         exit_gates[i][1] = -1;
@@ -573,14 +647,14 @@ int main(void)
             reports_ok = 0;
     }
 
-    if (waited != LOTTERY_NUM_WORKERS)
+    if (waited != lottery_worker_count)
         reports_ok = 0;
 
     return reports_ok ? EXIT_SUCCESS : EXIT_FAILURE;
 
 fork_error:
     /* Close start gates so children still waiting for the common start exit. */
-    for (i = 0; i < LOTTERY_NUM_WORKERS; i++) {
+    for (i = 0; i < lottery_worker_count; i++) {
         if (start_gates[i][1] >= 0) {
             close(start_gates[i][1]);
             start_gates[i][1] = -1;
@@ -598,7 +672,7 @@ fork_error:
     return EXIT_FAILURE;
 
 runtime_error:
-    for (i = 0; i < LOTTERY_NUM_WORKERS; i++) {
+    for (i = 0; i < lottery_worker_count; i++) {
         if (start_gates[i][1] >= 0) {
             close(start_gates[i][1]);
             start_gates[i][1] = -1;
@@ -619,7 +693,7 @@ runtime_error:
     return EXIT_FAILURE;
 
 setup_error:
-    for (i = 0; i < LOTTERY_NUM_WORKERS; i++) {
+    for (i = 0; i < lottery_worker_count; i++) {
         lottery_close_pair(start_gates[i]);
         lottery_close_pair(exit_gates[i]);
     }
