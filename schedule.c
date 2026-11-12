@@ -436,17 +436,25 @@ void init_scheduling(void)
  */
 static void balance_queues(struct timer *tp)
 {
-	struct schedproc *rmp;
-	int proc_nr;
+    struct schedproc *rmp;
+    int proc_nr;
 
-	for (proc_nr=0, rmp=schedproc; proc_nr < NR_PROCS; proc_nr++, rmp++) {
-		if (rmp->flags & IN_USE) {
-			if (rmp->priority > rmp->max_priority) {
-				rmp->priority -= 1; /* increase priority */
-				schedule_process_local(rmp);
-			}
-		}
-	}
+    for (proc_nr = 0, rmp = schedproc;
+         proc_nr < NR_PROCS;
+         proc_nr++, rmp++) {
 
-	set_timer(&sched_timer, balance_timeout, balance_queues, 0);
+        if (rmp->flags & IN_USE) {
+
+            /* Nao altera a prioridade de processos da loteria */
+            if (rmp->lottery_tickets > 0)
+                continue;
+
+            if (rmp->priority > rmp->max_priority) {
+                rmp->priority -= 1; /* increase priority */
+                schedule_process_local(rmp);
+            }
+        }
+    }
+
+    set_timer(&sched_timer, balance_timeout, balance_queues, 0);
 }
