@@ -18,6 +18,7 @@
 #include <sys/types.h>
 #include <sys/wait.h>
 #include <sys/time.h>
+#include <sys/select.h>
 #include <unistd.h>
 #include <fcntl.h>
 
@@ -243,6 +244,8 @@ int main(void)
     int failed;
     int ready_ok;
     int remaining;
+    int wait_result;
+    struct timeval delay;
     int log_fd;
     int length;
 
@@ -396,22 +399,42 @@ int main(void)
     printf("Carga: count_primes() continuo, sem I/O nos workers.\n\n");
     fflush(stdout);
 
-    /* O pai fica bloqueado enquanto os dois workers disputam a CPU. */
+    /*
+     * Espera usando select com timeout, sem depender de sleep()/SIGALRM.
+     * O pai fica bloqueado e nao consome CPU durante a medicao.
+     * O contador visivel tambem confirma que o benchmark esta avancando.
+     */
     remaining = BENCHMARK_SECONDS;
 
-    while (remaining > 0)
-        remaining = sleep((unsigned int) remaining);
+    while (remaining > 0) {
+        printf("\rMedindo: %2d segundos restantes...", remaining);
+        fflush(stdout);
 
-    /*
-     * Congela os dois workers antes de ler ProcFS.
-     * Assim, os contadores ficam estaveis durante a coleta.
-     */
-    for (i = 0; i < NUM_WORKERS; i++) {
-        if (kill(workers[i], SIGSTOP) == -1) {
-            perror("SIGSTOP");
+        delay.tv_sec = 1;
+        delay.tv_usec = 0;
+
+        wait_result = select(0, NULL, NULL, NULL, &delay);
+
+        if (wait_result == 0) {
+            remaining--;
+        } else if (wait_result == -1 && errno == EINTR) {
+            continue;
+        } else {
+            perror("select");
             failed = 1;
+            break;
         }
     }
+
+    printf("\rMedicao encerrada. Coletando estatisticas...\n");
+    fflush(stdout);
+
+    /*
+     * Le os contadores enquanto os workers ainda existem.
+     * Nao usamos SIGSTOP: o suporte a parada por sinal varia entre
+     * versoes/configuracoes do MINIX, e a leitura dos contadores e
+     * suficientemente rapida para servir como snapshot final.
+     */
 
     if (gettimeofday(&finish, NULL) == -1) {
         perror("gettimeofday");
