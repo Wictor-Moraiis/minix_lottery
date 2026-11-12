@@ -357,80 +357,44 @@ void lottery_dmp(void)
 {
   struct proc *rp;
   char *state;
-  int i, r;
-  int ticket_holders;
-  int lottery_processes;
+  int i, r, found;
 
-  /* Refresh the full kernel process table on every F9 press. */
+  /* Take one fresh snapshot; do not print unrelated user processes. */
   if ((r = sys_getproctab(proc)) != OK) {
-      printf("IS: warning: couldn't get copy of process table: %d\n", r);
+      printf("IS: cannot read kernel process table: %d\n", r);
       return;
   }
 
-  ticket_holders = 0;
-  lottery_processes = 0;
+  found = 0;
+  printf("\nLOTTERY SNAPSHOT | USER_Q=%d\n", USER_Q);
+  printf("PID  NAME      PRIO TICKETS WINS CTX-IN CTX-OUT Q-EXP STATE\n");
 
-  printf("\nLOTTERY SCHEDULING - LIVE PROCESS VIEW\n");
-  printf("This view includes ticket holders in ANY priority queue.\n");
-  printf("PROC_NR ENDPOINT NAME     PRIO TICKETS WINS\n");
-
-  /*
-   * Do not restrict ticket holders to USER_Q. The queue column shows
-   * their current kernel priority, which lets us diagnose queue changes.
-   * Also list processes named "lottery..." even when their ticket count
-   * is zero, so a failed/lost registration is visible.
-   */
   for (i = NR_TASKS; i < NR_TASKS + NR_PROCS; i++) {
       rp = &proc[i];
 
-      if (isemptyp(rp))
+      if (isemptyp(rp) || rp->p_lottery_tickets == 0)
           continue;
 
-      if (rp->p_lottery_tickets == 0 &&
-          strncmp(rp->p_name, "lottery", 7) != 0)
-          continue;
+      state = (rp->p_rts_flags == 0) ?
+          "READY" : p_rts_flags_str(rp->p_rts_flags);
 
-      if (rp->p_lottery_tickets > 0)
-          ticket_holders++;
-
-      if (strncmp(rp->p_name, "lottery", 7) == 0)
-          lottery_processes++;
-
-      if (rp->p_rts_flags != 0)
-          state = p_rts_flags_str(rp->p_rts_flags);
-      else if ((unsigned char) rp->p_priority == USER_Q)
-          state = "RUNNABLE_USER_Q";
-      else
-          state = "RUNNABLE_OTHER_Q";
-
-      printf("%7d %8x %-8.8s %5u %7u %7lu\n",
+      printf("%-4d %-8.8s %4u %7u %7lu %6lu %7lu %5lu %s\n",
              (int) proc_nr(rp),
-             (unsigned) rp->p_endpoint,
              rp->p_name,
              (unsigned int) (unsigned char) rp->p_priority,
              rp->p_lottery_tickets,
-             rp->p_lottery_wins);
-
-      printf("        ctx-in=%lu ctx-out=%lu quantum-exp=%lu\n",
+             rp->p_lottery_wins,
              rp->p_context_switches_in,
              rp->p_context_switches_out,
-             rp->p_quantum_expirations);
-
-      printf("        cycles hi:lo=%lu:%lu | flags=0x%lx | %s\n",
-             ex64hi(rp->p_lottery_cycles),
-             ex64lo(rp->p_lottery_cycles),
-             (unsigned long) rp->p_rts_flags,
+             rp->p_quantum_expirations,
              state);
+      found++;
   }
 
-  printf("\nTicket holders found: %d\n", ticket_holders);
-  printf("Processes named lottery*: %d\n", lottery_processes);
-
-  if (ticket_holders == 0)
-      printf("WARNING: no process currently has Lottery tickets.\n");
-
-  printf("PRIO is current p_priority; Lottery selection runs only at USER_Q=%d.\n", USER_Q);
-  printf("Press F9 again to refresh this view.\n");
+  if (found == 0)
+      printf("No active processes with Lottery tickets.\n");
+  else
+      printf("Participants: %d | F9 takes a single snapshot.\n", found);
 }
 
 /*===========================================================================*
