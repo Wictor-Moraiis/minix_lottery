@@ -5,6 +5,7 @@
 #include <assert.h>
 #include <machine/interrupt.h>
 #include <minix/endpoint.h>
+#include <minix/config.h>
 #include <minix/u64.h>
 #include <minix/sysutil.h>
 #include <minix/sys_config.h>
@@ -412,7 +413,7 @@ void lottery_dmp(void)
                  (int) proc_nr(rp),
                  (unsigned) rp->p_endpoint,
                  rp->p_name,
-                 (unsigned char) rp->p_priority,
+                 (unsigned int) (unsigned char) rp->p_priority,
                  rp->p_lottery_tickets,
                  rp->p_lottery_wins,
                  rp->p_context_switches_in,
