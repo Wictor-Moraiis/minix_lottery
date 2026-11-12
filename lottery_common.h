@@ -331,11 +331,11 @@ static int lottery_read_integer(const char *prompt, int minimum,
     if (end == input || errno == ERANGE)
         return -1;
 
-    while (*end == ' ' || *end == '\\t' ||
-           *end == '\\r' || *end == '\\n')
+    while (*end == ' ' || *end == '\t' ||
+           *end == '\r' || *end == '\n')
         end++;
 
-    if (*end != '\\0' || parsed < minimum || parsed > maximum)
+    if (*end != '\0' || parsed < minimum || parsed > maximum)
         return -1;
 
     *value = (int) parsed;
@@ -348,13 +348,13 @@ static int lottery_configure_custom(void)
     int i;
     int value;
 
-    printf("\\nCUSTOM LOTTERY CONFIGURATION\\n");
-    printf("Allowed workers: 2 to %d | tickets per worker: 1 to %d\\n",
+    printf("\nCUSTOM LOTTERY CONFIGURATION\n");
+    printf("Allowed workers: 2 to %d | tickets per worker: 1 to %d\n",
            LOTTERY_NUM_WORKERS, SCHEDULING_MAX_TICKETS);
 
     if (lottery_read_integer("Number of workers: ", 2,
                              LOTTERY_NUM_WORKERS, &value) != 0) {
-        printf("Invalid worker count.\\n");
+        printf("Invalid worker count.\n");
         return -1;
     }
 
@@ -366,14 +366,14 @@ static int lottery_configure_custom(void)
 
         if (lottery_read_integer(prompt, 1,
                                  SCHEDULING_MAX_TICKETS, &value) != 0) {
-            printf("Invalid ticket count for Worker %d.\\n", i + 1);
+            printf("Invalid ticket count for Worker %d.\n", i + 1);
             return -1;
         }
 
         lottery_tickets[i] = value;
     }
 
-    printf("\\nDuration is fixed at %d seconds for comparable tests.\\n",
+    printf("\nDuration is fixed at %d seconds for comparable tests.\n",
            LOTTERY_SECONDS);
     return 0;
 }
