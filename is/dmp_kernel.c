@@ -353,92 +353,80 @@ void proctab_dmp(void)
 /*===========================================================================*
  *                         lottery_dmp
  *===========================================================================*/
-#define LOTTERY_PAGE_SIZE 9
-
 void lottery_dmp(void)
 {
-  static int page_phase = 0;
-  static int page_start = NR_TASKS;
   struct proc *rp;
   char *state;
-  int i, r, shown;
+  int i, r;
+  int ticket_holders;
+  int lottery_processes;
 
-  /* Refresh the process table before every F9 dump. */
+  /* Refresh the full kernel process table on every F9 press. */
   if ((r = sys_getproctab(proc)) != OK) {
       printf("IS: warning: couldn't get copy of process table: %d\n", r);
       return;
   }
 
-  printf("\nLottery Scheduling - live kernel statistics\n");
-  printf("USER_Q=%d | tickets=0 means default weight 1 in USER_Q\n",
-         USER_Q);
-  printf(" nr endpoint name     prio tickets    wins ctx-in ctx-out q-exp state\n");
+  ticket_holders = 0;
+  lottery_processes = 0;
 
-  shown = 0;
+  printf("\nLOTTERY SCHEDULING - LIVE PROCESS VIEW\n");
+  printf("This view includes ticket holders in ANY priority queue.\n");
+  printf("PROC_NR ENDPOINT NAME     QUEUE TICKETS WINS\n");
 
   /*
-   * First show processes explicitly registered with Lottery tickets,
-   * even if their current priority or state is unexpected.
-   * Then show other runnable processes in USER_Q; with zero explicit
-   * tickets, these participate with the default weight of one.
+   * Do not restrict ticket holders to USER_Q. The queue column shows
+   * their current kernel priority, which lets us diagnose queue changes.
+   * Also list processes named "lottery..." even when their ticket count
+   * is zero, so a failed/lost registration is visible.
    */
-  for (; page_phase < 2; page_phase++) {
-      for (i = page_start; i < NR_TASKS + NR_PROCS; i++) {
-          rp = &proc[i];
+  for (i = NR_TASKS; i < NR_TASKS + NR_PROCS; i++) {
+      rp = &proc[i];
 
-          if (isemptyp(rp) || proc_nr(rp) < 0)
-              continue;
+      if (isemptyp(rp))
+          continue;
 
-          if (page_phase == 0) {
-              if (rp->p_lottery_tickets == 0)
-                  continue;
-          } else {
-              if (rp->p_lottery_tickets != 0 ||
-                  (unsigned char) rp->p_priority != USER_Q ||
-                  rp->p_rts_flags != 0)
-                  continue;
-          }
+      if (rp->p_lottery_tickets == 0 &&
+          strncmp(rp->p_name, "lottery", 7) != 0)
+          continue;
 
-          /* Keep the output within a console screen. */
-          if (shown >= LOTTERY_PAGE_SIZE) {
-              page_start = i;
-              printf("-- more: press F9 for the next page --\n");
-              return;
-          }
+      if (rp->p_lottery_tickets > 0)
+          ticket_holders++;
 
-          state = (rp->p_rts_flags == 0) ?
-              "RUNNABLE" : p_rts_flags_str(rp->p_rts_flags);
+      if (strncmp(rp->p_name, "lottery", 7) == 0)
+          lottery_processes++;
 
-          printf("%3d %8x %-8.8s %4u %7u %7lu %6lu %6lu %5lu %-8s\n",
-                 (int) proc_nr(rp),
-                 (unsigned) rp->p_endpoint,
-                 rp->p_name,
-                 (unsigned int) (unsigned char) rp->p_priority,
-                 rp->p_lottery_tickets,
-                 rp->p_lottery_wins,
-                 rp->p_context_switches_in,
-                 rp->p_context_switches_out,
-                 rp->p_quantum_expirations,
-                 state);
+      state = (rp->p_rts_flags == 0) ?
+          "RUNNABLE" : p_rts_flags_str(rp->p_rts_flags);
 
-          printf("    lottery_cycles hi:lo = %lu:%lu\n",
-                 ex64hi(rp->p_lottery_cycles),
-                 ex64lo(rp->p_lottery_cycles));
+      printf("%7d %8x %-8.8s %5u %7u %7lu\n",
+             (int) proc_nr(rp),
+             (unsigned) rp->p_endpoint,
+             rp->p_name,
+             (unsigned int) (unsigned char) rp->p_priority,
+             rp->p_lottery_tickets,
+             rp->p_lottery_wins);
 
-          shown++;
-      }
+      printf("        ctx-in=%lu ctx-out=%lu quantum-exp=%lu\n",
+             rp->p_context_switches_in,
+             rp->p_context_switches_out,
+             rp->p_quantum_expirations);
 
-      /* The next phase starts at the first user-process slot. */
-      page_start = NR_TASKS;
+      printf("        cycles hi:lo=%lu:%lu | flags=0x%lx | %s\n",
+             ex64hi(rp->p_lottery_cycles),
+             ex64lo(rp->p_lottery_cycles),
+             (unsigned long) rp->p_rts_flags,
+             state);
   }
 
-  page_phase = 0;
-  page_start = NR_TASKS;
+  printf("\nTicket holders found: %d\n", ticket_holders);
+  printf("Processes named lottery*: %d\n", lottery_processes);
 
-  if (shown == 0)
-      printf("No Lottery ticket holders or runnable USER_Q processes found.\n");
-  else
-      printf("End of Lottery table. Press F9 again to refresh from the first page.\n");
+  if (ticket_holders == 0)
+      printf("WARNING: no process currently has Lottery tickets.\n");
+
+  printf("Queue value is the current p_priority (USER_Q=%d).\n", USER_Q);
+  printf("Press F9 again to refresh this view.\n");
 }
 
 /*===========================================================================*
