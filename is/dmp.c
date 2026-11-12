@@ -23,6 +23,7 @@ struct hook_entry {
 	{ F6,	irqtab_dmp, "IRQ hooks and policies" },
 	{ F7,	kmessages_dmp, "Kernel messages" },
 	{ F8,	vm_dmp, "VM status and process maps" },
+	{ F9,	lottery_dmp, "Lottery scheduling statistics" },
 	{ F10,	kenv_dmp, "Kernel parameters" },
 	{ SF1,	mproc_dmp, "Process manager process table" },
 	{ SF2,	sigaction_dmp, "Signals" },
