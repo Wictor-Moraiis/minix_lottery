@@ -19,6 +19,7 @@
 #include <sys/wait.h>
 #include <sys/time.h>
 #include <sys/select.h>
+#include <time.h>
 #include <unistd.h>
 #include <fcntl.h>
 
@@ -136,48 +137,60 @@ static long long elapsed_us(const struct timeval *start,
          + ((long long) finish->tv_usec - start->tv_usec);
 }
 
-/* Le os contadores disponibilizados pelo ProcFS. */
+/* Le um snapshot curto dos contadores disponibilizados pelo ProcFS. */
 static int read_lottery_stats(pid_t pid, struct lottery_stats *stats)
 {
     char path[64];
-    char line[128];
+    char buffer[512];
+    char *p;
+    ssize_t bytes;
     unsigned int found;
-    FILE *fp;
+    int fd;
 
     snprintf(path, sizeof(path), "/proc/%ld/lottery", (long) pid);
 
-    fp = fopen(path, "r");
-
-    if (fp == NULL)
+    fd = open(path, O_RDONLY);
+    if (fd == -1)
         return -1;
 
+    /* O arquivo e pequeno; uma leitura evita loop de fgets sem EOF. */
+    bytes = read(fd, buffer, sizeof(buffer) - 1);
+    close(fd);
+
+    if (bytes <= 0)
+        return -1;
+
+    buffer[bytes] = '\0';
     memset(stats, 0, sizeof(*stats));
     found = 0;
 
-    while (fgets(line, sizeof(line), fp) != NULL) {
+    p = strstr(buffer, "tickets=");
+    if (p != NULL && sscanf(p + 8, "%u", &stats->tickets) == 1)
+        found |= 1;
 
-        if (sscanf(line, "tickets=%u", &stats->tickets) == 1)
-            found |= 1;
-        else if (sscanf(line, "wins=%lu", &stats->wins) == 1)
-            found |= 2;
-        else if (sscanf(line, "context_switches_in=%lu",
-                        &stats->context_switches_in) == 1)
-            found |= 4;
-        else if (sscanf(line, "context_switches_out=%lu",
-                        &stats->context_switches_out) == 1)
-            found |= 8;
-        else if (sscanf(line, "quantum_expirations=%lu",
-                        &stats->quantum_expirations) == 1)
-            found |= 16;
-        else if (sscanf(line, "cycles_hi=%lu",
-                        &stats->cycles_hi) == 1)
-            found |= 32;
-        else if (sscanf(line, "cycles_lo=%lu",
-                        &stats->cycles_lo) == 1)
-            found |= 64;
-    }
+    p = strstr(buffer, "wins=");
+    if (p != NULL && sscanf(p + 5, "%lu", &stats->wins) == 1)
+        found |= 2;
 
-    fclose(fp);
+    p = strstr(buffer, "context_switches_in=");
+    if (p != NULL && sscanf(p + 20, "%lu", &stats->context_switches_in) == 1)
+        found |= 4;
+
+    p = strstr(buffer, "context_switches_out=");
+    if (p != NULL && sscanf(p + 21, "%lu", &stats->context_switches_out) == 1)
+        found |= 8;
+
+    p = strstr(buffer, "quantum_expirations=");
+    if (p != NULL && sscanf(p + 19, "%lu", &stats->quantum_expirations) == 1)
+        found |= 16;
+
+    p = strstr(buffer, "cycles_hi=");
+    if (p != NULL && sscanf(p + 10, "%lu", &stats->cycles_hi) == 1)
+        found |= 32;
+
+    p = strstr(buffer, "cycles_lo=");
+    if (p != NULL && sscanf(p + 10, "%lu", &stats->cycles_lo) == 1)
+        found |= 64;
 
     return found == 127 ? 0 : -1;
 }
@@ -243,7 +256,6 @@ int main(void)
     int status;
     int failed;
     int ready_ok;
-    int remaining;
     int wait_result;
     struct timeval delay;
     int log_fd;
@@ -255,9 +267,9 @@ int main(void)
     struct lottery_stats stats[NUM_WORKERS];
     int stats_ok[NUM_WORKERS];
 
-    struct timeval start;
-    struct timeval finish;
-    long long elapsed;
+    time_t start;
+    time_t finish;
+    long elapsed;
     unsigned long total_worker_wins;
     double share;
 
@@ -306,7 +318,7 @@ int main(void)
 
     /* Cria os dois processos trabalhadores. */
     for (i = 0; i < NUM_WORKERS; i++) {
-        printf("Criando Worker %d...\\n", i + 1);
+        printf("Criando Worker %d...\n", i + 1);
         fflush(stdout);
         workers[i] = fork();
 
@@ -339,7 +351,7 @@ int main(void)
 
     close(ready_pipe[1]);
 
-    printf("Workers criados: %d. Aguardando registro dos tickets...\\n",
+    printf("Workers criados: %d. Aguardando registro dos tickets...\n",
            created);
     fflush(stdout);
 
@@ -377,98 +389,104 @@ int main(void)
         return EXIT_FAILURE;
     }
 
-    /*
-     * O instante inicial e registrado antes de liberar os dois filhos.
-     * Depois da liberacao, o pai dorme e nao participa da disputa por CPU.
-     */
-    if (gettimeofday(&start, NULL) == -1) {
-        perror("gettimeofday");
-        failed = 1;
-    }
-
-    for (i = 0; i < NUM_WORKERS; i++) {
-        if (!failed &&
-            write_full(gates[i][1], &start_signal, 1) == -1) {
-            fprintf(stderr,
-                    "Pai: falha ao iniciar Worker %d.\n", i + 1);
-            failed = 1;
-        }
-
-        close(gates[i][1]);
-    }
-
-    if (failed) {
-        for (i = 0; i < created; i++)
-            (void) kill(workers[i], SIGKILL);
-
-        while (wait(&status) != -1)
-            ;
-
-        return EXIT_FAILURE;
-    }
-
-    printf("=== BENCHMARK LOTTERY SCHEDULING ===\n");
+    printf("Ambos os workers estao prontos. Iniciando medicao.\n");
     printf("Workers: 2 | Duracao: %d segundos | Tickets: 10 e 30\n",
            BENCHMARK_SECONDS);
     printf("Carga: count_primes() continuo, sem I/O nos workers.\n\n");
     fflush(stdout);
 
     /*
-     * Espera usando select com timeout, sem depender de sleep()/SIGALRM.
-     * O pai fica bloqueado e nao consome CPU durante a medicao.
-     * O contador visivel tambem confirma que o benchmark esta avancando.
+     * Libera os dois workers e inicia uma unica espera temporizada.
+     * O pai dorme pela janela inteira. Assim ele nao precisa disputar
+     * a USER_Q 30 vezes para atualizar um contador de segundos.
      */
-    remaining = BENCHMARK_SECONDS;
+    for (i = 0; i < NUM_WORKERS; i++) {
+        if (write_full(gates[i][1], &start_signal, 1) == -1) {
+            fprintf(stderr, "Pai: falha ao iniciar Worker %d.\n", i + 1);
+            failed = 1;
+        }
+        close(gates[i][1]);
+    }
 
-    while (remaining > 0) {
-        printf("\rMedindo: %2d segundos restantes...", remaining);
+    if (failed) {
+        for (i = 0; i < created; i++)
+            (void) kill(workers[i], SIGKILL);
+        while (wait(&status) != -1)
+            ;
+        return EXIT_FAILURE;
+    }
+
+    start = time(NULL);
+    if (start == (time_t)-1) {
+        perror("time");
+        for (i = 0; i < created; i++)
+            (void) kill(workers[i], SIGKILL);
+        while (wait(&status) != -1)
+            ;
+        return EXIT_FAILURE;
+    }
+
+    printf("Medindo por %d segundos...\n", BENCHMARK_SECONDS);
+    fflush(stdout);
+
+    delay.tv_sec = BENCHMARK_SECONDS;
+    delay.tv_usec = 0;
+    do {
+        wait_result = select(0, NULL, NULL, NULL, &delay);
+    } while (wait_result == -1 && errno == EINTR);
+
+    if (wait_result == -1) {
+        perror("select");
+        failed = 1;
+    }
+
+    finish = time(NULL);
+    if (finish == (time_t)-1) {
+        perror("time");
+        finish = start;
+        failed = 1;
+    }
+    elapsed = (long)(finish - start);
+
+    /*
+     * Para e aguarda cada worker antes de ler o ProcFS. WUNTRACED
+     * confirma que o processo realmente recebeu SIGSTOP.
+     */
+    for (i = 0; i < NUM_WORKERS; i++) {
+        printf("Parando Worker %d (PID=%ld)...\n",
+               i + 1, (long) workers[i]);
         fflush(stdout);
 
-        delay.tv_sec = 1;
-        delay.tv_usec = 0;
-
-        wait_result = select(0, NULL, NULL, NULL, &delay);
-
-        if (wait_result == 0) {
-            remaining--;
-        } else if (wait_result == -1 && errno == EINTR) {
-            continue;
-        } else {
-            perror("select");
+        if (kill(workers[i], SIGSTOP) == -1) {
+            perror("SIGSTOP");
             failed = 1;
-            break;
+            continue;
+        }
+
+        if (waitpid(workers[i], &status, WUNTRACED) == -1) {
+            perror("waitpid WUNTRACED");
+            failed = 1;
+        } else if (!WIFSTOPPED(status)) {
+            fprintf(stderr, "Worker %d nao confirmou estado parado.\n",
+                    i + 1);
+            failed = 1;
         }
     }
 
-    printf("\rMedicao encerrada. Coletando estatisticas...\n");
+    printf("Workers parados. Coletando estatisticas...\n");
     fflush(stdout);
 
-    /*
-     * Le os contadores enquanto os workers ainda existem.
-     * Nao usamos SIGSTOP: o suporte a parada por sinal varia entre
-     * versoes/configuracoes do MINIX, e a leitura dos contadores e
-     * suficientemente rapida para servir como snapshot final.
-     */
-
-    if (gettimeofday(&finish, NULL) == -1) {
-        perror("gettimeofday");
-        failed = 1;
-        finish = start;
-    }
-
-    elapsed = elapsed_us(&start, &finish);
-
-    /* So agora, com os workers parados, o pai consulta o ProcFS. */
     total_worker_wins = 0;
-
     for (i = 0; i < NUM_WORKERS; i++) {
-        stats_ok[i] = (read_lottery_stats(workers[i], &stats[i]) == 0);
+        printf("Lendo /proc/%ld/lottery...\n", (long) workers[i]);
+        fflush(stdout);
 
-        if (stats_ok[i])
+        stats_ok[i] = (read_lottery_stats(workers[i], &stats[i]) == 0);
+        if (stats_ok[i]) {
+            printf("Estatisticas do Worker %d lidas.\n", i + 1);
             total_worker_wins += stats[i].wins;
-        else {
-            fprintf(stderr,
-                    "Nao foi possivel ler /proc/%ld/lottery.\n",
+        } else {
+            fprintf(stderr, "Falha ao ler /proc/%ld/lottery.\n",
                     (long) workers[i]);
             failed = 1;
         }
@@ -484,10 +502,9 @@ int main(void)
         "Workers: 2 | Duracao configurada: %d segundos "
         "| Tickets: 10 e 30\n"
         "Carga: count_primes() continuo, sem I/O nos workers.\n"
-        "Tempo medido: %lld.%03lld segundos\n\n",
+        "Tempo medido: %ld segundos\n\n",
         BENCHMARK_SECONDS,
-        elapsed / 1000000LL,
-        (elapsed % 1000000LL) / 1000LL
+        elapsed
     );
 
     printf("%s", line);
