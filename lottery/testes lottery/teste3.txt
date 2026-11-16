@@ -1,0 +1,205 @@
+
+
+============================================================
+LOTTERY SCHEDULING BENCHMARK
+Profile: custom | interactive workers, ticket weights and duration
+Workers: 3 | duration: 60 seconds
+============================================================
+
+Registered participants:
+Worker 1 | PID=158 | tickets=10 | expected share=16.67%
+Worker 2 | PID=159 | tickets=20 | expected share=33.33%
+Worker 3 | PID=160 | tickets=30 | expected share=50.00%
+
+START: releasing all workers for 60 seconds.
+
+END: stopping workers and collecting final statistics.
+
+=== FINAL RESULTS ===
+Measurement window: 60 seconds
+
+Worker 1 | PID=158
+  Tickets: 10 | expected share: 16.67%
+  Wins: 101 | share among measured workers: 14.51%
+  Context in/out: 100/100 | quantum expirations: 72
+  Completed work units: 77 | work share: 13.01%
+
+Worker 2 | PID=159
+  Tickets: 20 | expected share: 33.33%
+  Wins: 223 | share among measured workers: 32.04%
+  Context in/out: 218/218 | quantum expirations: 185
+  Completed work units: 197 | work share: 33.28%
+
+Worker 3 | PID=160
+  Tickets: 30 | expected share: 50.00%
+  Wins: 372 | share among measured workers: 53.45%
+  Context in/out: 367/367 | quantum expirations: 299
+  Completed work units: 318 | work share: 53.72%
+
+Total Lottery wins collected: 696
+Total completed work units: 592
+END: releasing workers and cleaning up.
+
+
+============================================================
+LOTTERY SCHEDULING BENCHMARK
+Profile: custom | interactive workers, ticket weights and duration
+Workers: 3 | duration: 60 seconds
+============================================================
+
+Registered participants:
+Worker 1 | PID=167 | tickets=10 | expected share=16.67%
+Worker 2 | PID=168 | tickets=20 | expected share=33.33%
+Worker 3 | PID=169 | tickets=30 | expected share=50.00%
+
+START: releasing all workers for 60 seconds.
+
+END: stopping workers and collecting final statistics.
+
+=== FINAL RESULTS ===
+Measurement window: 60 seconds
+
+Worker 1 | PID=167
+  Tickets: 10 | expected share: 16.67%
+  Wins: 152 | share among measured workers: 19.82%
+  Context in/out: 150/150 | quantum expirations: 117
+  Completed work units: 123 | work share: 19.07%
+
+Worker 2 | PID=168
+  Tickets: 20 | expected share: 33.33%
+  Wins: 262 | share among measured workers: 34.16%
+  Context in/out: 259/259 | quantum expirations: 207
+  Completed work units: 217 | work share: 33.64%
+
+Worker 3 | PID=169
+  Tickets: 30 | expected share: 50.00%
+  Wins: 353 | share among measured workers: 46.02%
+  Context in/out: 350/350 | quantum expirations: 289
+  Completed work units: 305 | work share: 47.29%
+
+Total Lottery wins collected: 767
+Total completed work units: 645
+END: releasing workers and cleaning up.
+
+
+============================================================
+LOTTERY SCHEDULING BENCHMARK
+Profile: custom | interactive workers, ticket weights and duration
+Workers: 3 | duration: 60 seconds
+============================================================
+
+Registered participants:
+Worker 1 | PID=176 | tickets=10 | expected share=16.67%
+Worker 2 | PID=177 | tickets=20 | expected share=33.33%
+Worker 3 | PID=178 | tickets=30 | expected share=50.00%
+
+START: releasing all workers for 60 seconds.
+
+END: stopping workers and collecting final statistics.
+
+=== FINAL RESULTS ===
+Measurement window: 60 seconds
+
+Worker 1 | PID=176
+  Tickets: 10 | expected share: 16.67%
+  Wins: 134 | share among measured workers: 15.21%
+  Context in/out: 133/133 | quantum expirations: 88
+  Completed work units: 94 | work share: 13.18%
+
+Worker 2 | PID=177
+  Tickets: 20 | expected share: 33.33%
+  Wins: 298 | share among measured workers: 33.83%
+  Context in/out: 292/292 | quantum expirations: 235
+  Completed work units: 251 | work share: 35.20%
+
+Worker 3 | PID=178
+  Tickets: 30 | expected share: 50.00%
+  Wins: 449 | share among measured workers: 50.96%
+  Context in/out: 446/446 | quantum expirations: 344
+  Completed work units: 368 | work share: 51.61%
+
+Total Lottery wins collected: 881
+Total completed work units: 713
+END: releasing workers and cleaning up.
+
+
+============================================================
+LOTTERY SCHEDULING BENCHMARK
+Profile: custom | interactive workers, ticket weights and duration
+Workers: 3 | duration: 60 seconds
+============================================================
+
+Registered participants:
+Worker 1 | PID=189 | tickets=10 | expected share=16.67%
+Worker 2 | PID=190 | tickets=20 | expected share=33.33%
+Worker 3 | PID=191 | tickets=30 | expected share=50.00%
+
+START: releasing all workers for 60 seconds.
+
+END: stopping workers and collecting final statistics.
+
+=== FINAL RESULTS ===
+Measurement window: 60 seconds
+
+Worker 1 | PID=189
+  Tickets: 10 | expected share: 16.67%
+  Wins: 228 | share among measured workers: 22.29%
+  Context in/out: 224/224 | quantum expirations: 169
+  Completed work units: 179 | work share: 21.72%
+
+Worker 2 | PID=190
+  Tickets: 20 | expected share: 33.33%
+  Wins: 327 | share among measured workers: 31.96%
+  Context in/out: 322/322 | quantum expirations: 253
+  Completed work units: 267 | work share: 32.40%
+
+Worker 3 | PID=191
+  Tickets: 30 | expected share: 50.00%
+  Wins: 468 | share among measured workers: 45.75%
+  Context in/out: 462/462 | quantum expirations: 355
+  Completed work units: 378 | work share: 45.87%
+
+Total Lottery wins collected: 1023
+Total completed work units: 824
+END: releasing workers and cleaning up.
+
+
+============================================================
+LOTTERY SCHEDULING BENCHMARK
+Profile: custom | interactive workers, ticket weights and duration
+Workers: 3 | duration: 60 seconds
+============================================================
+
+Registered participants:
+Worker 1 | PID=200 | tickets=10 | expected share=16.67%
+Worker 2 | PID=201 | tickets=20 | expected share=33.33%
+Worker 3 | PID=202 | tickets=30 | expected share=50.00%
+
+START: releasing all workers for 60 seconds.
+
+END: stopping workers and collecting final statistics.
+
+=== FINAL RESULTS ===
+Measurement window: 60 seconds
+
+Worker 1 | PID=200
+  Tickets: 10 | expected share: 16.67%
+  Wins: 150 | share among measured workers: 15.97%
+  Context in/out: 147/147 | quantum expirations: 113
+  Completed work units: 119 | work share: 15.66%
+
+Worker 2 | PID=201
+  Tickets: 20 | expected share: 33.33%
+  Wins: 332 | share among measured workers: 35.36%
+  Context in/out: 327/327 | quantum expirations: 248
+  Completed work units: 264 | work share: 34.74%
+
+Worker 3 | PID=202
+  Tickets: 30 | expected share: 50.00%
+  Wins: 457 | share among measured workers: 48.67%
+  Context in/out: 454/454 | quantum expirations: 355
+  Completed work units: 377 | work share: 49.61%
+
+Total Lottery wins collected: 939
+Total completed work units: 760
+END: releasing workers and cleaning up.

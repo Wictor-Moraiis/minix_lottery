@@ -1,4 +1,0 @@
-    compile  sched/main.o
-    compile  sched/schedule.o
-    compile  sched/utility.o
-       link  sched/sched
